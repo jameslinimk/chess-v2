@@ -1,47 +1,65 @@
+import { calculateMoves, type PieceAttribute } from "./attributes.js"
+import type { Board } from "./board.js"
 import type { Loc } from "./util.js"
 
+export enum Color {
+	White,
+	Black,
+}
+
 /**
- * Key is the priority
+ * Name of the a piece, such as `Pawn`, `Rook`, `Knight`, `Bishop`, `Queen`, or `King`
  */
-export enum PieceAttributes {
-	/**
-	 * Sliding pieces can move any number of squares given a direction `(x, y)`, stopping when they reach an piece
-	 */
-	Sliding = 0,
-	/**
-	 * Stepping pieces can move `(x, y)` squares, but only if the square is empty
-	 */
-	Stepping = 1,
-	/**
-	 * Protected pieces cannot move into a square attacked by an enemy piece
-	 */
-	Protected = 10,
+export enum Name {
+	Pawn,
+	Rook,
+	Knight,
+	Bishop,
+	Queen,
+	King,
 }
 
-interface Sliding {
-	kind: PieceAttributes.Sliding
-	direction: Loc
+const pieceImages: Record<Name, Record<Color, string>> = {
+	[Name.Pawn]: {
+		[Color.White]: "standard/pw.svg",
+		[Color.Black]: "standard/pb.svg",
+	},
+	[Name.Rook]: {
+		[Color.White]: "standard/rw.svg",
+		[Color.Black]: "standard/rb.svg",
+	},
+	[Name.Knight]: {
+		[Color.White]: "standard/nw.svg",
+		[Color.Black]: "standard/nb.svg",
+	},
+	[Name.Bishop]: {
+		[Color.White]: "standard/bw.svg",
+		[Color.Black]: "standard/bb.svg",
+	},
+	[Name.Queen]: {
+		[Color.White]: "standard/qw.svg",
+		[Color.Black]: "standard/qb.svg",
+	},
+	[Name.King]: {
+		[Color.White]: "standard/kw.svg",
+		[Color.Black]: "standard/kb.svg",
+	},
 }
-
-interface Stepping {
-	kind: PieceAttributes.Stepping
-	direction: Loc
-}
-
-interface Protected {
-	kind: PieceAttributes.Protected
-}
-
-const calculateMoves = (from: Loc, moves: Loc[]): Loc[] => {
-	return moves
-}
-
-export const isSliding = (piece: PieceAttribute): piece is Sliding => piece.kind === PieceAttributes.Sliding
-export const isStepping = (piece: PieceAttribute): piece is Stepping => piece.kind === PieceAttributes.Stepping
-export const isProtected = (piece: PieceAttribute): piece is Protected => piece.kind === PieceAttributes.Protected
-
-export type PieceAttribute = Sliding | Stepping | Protected
 
 export class Piece {
-	constructor(public name: string, public attributes: PieceAttribute[], public value: number, public image: string) {}
+	attributes: PieceAttribute[]
+	constructor(public name: Name, public pos: Loc, attributes: PieceAttribute[], public value: number, public color: Color) {
+		this.attributes = attributes.sort((a, b) => a.kind - b.kind)
+	}
+
+	getImage(): string {
+		return pieceImages[this.name][this.color]
+	}
+
+	getMoves(board: Board): Loc[] {
+		return this.attributes.reduce((acc, attr) => {
+			calculateMoves(attr, acc, board, this)
+			return acc
+		}, [])
+	}
 }
