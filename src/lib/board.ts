@@ -1,3 +1,4 @@
+import { config } from "./config.js"
 import { Color, type Piece } from "./piece.js"
 import type { Loc } from "./util.js"
 
@@ -33,6 +34,8 @@ export class Board {
 	 */
 	castleRights: Record<Color, [boolean, boolean]> = emptyColorInit([true, true])
 
+	svg: SVGElement | null = null
+
 	constructor(public width: number, public height: number) {
 		this.raw = Array.from(Array(width), () => Array.from(Array(height), () => null))
 	}
@@ -44,15 +47,29 @@ export class Board {
 
 	initDraw(svg: SVGElement) {
 		while (svg.firstChild) svg.removeChild(svg.firstChild)
+
+		svg.setAttribute("viewBox", `0 0 ${this.width} ${this.height}`)
+		svg.setAttribute("width", "50%")
 		this.raw.forEach((row, y) => {
 			row.forEach((piece, x) => {
-				const color = (x + y) % 2 === 0 ? "white" : "black"
+				const color = (x + y) % 2 === 0 ? config.white : config.black
 				const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-				rect.setAttribute("x", x.toString())
-				rect.setAttribute("y", y.toString())
+				rect.setAttribute("x", `${x}`)
+				rect.setAttribute("y", `${y}`)
 				rect.setAttribute("width", "1")
 				rect.setAttribute("height", "1")
 				rect.setAttribute("fill", color)
+
+				rect.setAttribute("highlight", "false")
+				rect.addEventListener("click", (event) => {
+					if (event.button !== 2) return
+					rect.setAttribute("highlight", `${rect.getAttribute("highlight") !== "true"}`)
+					if (rect.getAttribute("highlight") === "true") {
+						rect.setAttribute("fill", "red")
+					} else {
+						rect.setAttribute("fill", color)
+					}
+				})
 				svg.appendChild(rect)
 			})
 		})
@@ -84,5 +101,12 @@ export class Board {
 	 */
 	valid(loc: Loc): boolean {
 		return loc.x >= 0 && loc.x < this.width && loc.y >= 0 && loc.y < this.height
+	}
+
+	static fromFen(fen: string): Board {
+		const board = new Board(8, 8)
+		const [pieces, turn, castle, enPassant, halfMove, fullMove] = fen.split(" ")
+
+		return board
 	}
 }

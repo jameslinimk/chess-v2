@@ -46,6 +46,17 @@ const pieceImages: Record<Name, Record<Color, string>> = {
 	},
 }
 
+const pieceSymbols: Record<Name, string> = {
+	[Name.Pawn]: "p",
+	[Name.Rook]: "r",
+	[Name.Knight]: "n",
+	[Name.Bishop]: "b",
+	[Name.Queen]: "q",
+	[Name.King]: "k",
+}
+
+const symbolPieces: Record<string, Name> = Object.entries(pieceSymbols).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {})
+
 export class Piece {
 	attributes: PieceAttribute[]
 	constructor(public name: Name, public pos: Loc, attributes: PieceAttribute[], public value: number, public color: Color) {
