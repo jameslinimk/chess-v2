@@ -1,6 +1,5 @@
-import { config } from "./config.js"
-import { Color, type Piece } from "./piece.js"
-import type { Loc } from "./util.js"
+import { Color, Piece } from "./piece.js"
+import { loc, type Loc } from "./util.js"
 
 /**
  * Create a record with all colors as keys and `init` as values
@@ -24,7 +23,7 @@ interface MoveData {
 export class Board {
 	raw: (Piece | null)[][]
 	currentMove: Color = Color.White
-	moveHistory: [Loc, Loc][] = []
+	moveHistory: MoveData[] = []
 
 	attacks: Record<Color, Loc[]> = emptyColorInit([])
 	moves: Record<Color, Loc[]> = emptyColorInit([])
@@ -34,45 +33,14 @@ export class Board {
 	 */
 	castleRights: Record<Color, [boolean, boolean]> = emptyColorInit([true, true])
 
-	svg: SVGElement | null = null
-
 	constructor(public width: number, public height: number) {
 		this.raw = Array.from(Array(width), () => Array.from(Array(height), () => null))
 	}
 
 	static defaultBoard(): Board {
 		const board = new Board(8, 8)
+		board.set(loc(0, 6), Piece.newPawn(Color.White, loc(0, 6)))
 		return board
-	}
-
-	initDraw(svg: SVGElement) {
-		while (svg.firstChild) svg.removeChild(svg.firstChild)
-
-		svg.setAttribute("viewBox", `0 0 ${this.width} ${this.height}`)
-		svg.setAttribute("width", "50%")
-		this.raw.forEach((row, y) => {
-			row.forEach((piece, x) => {
-				const color = (x + y) % 2 === 0 ? config.white : config.black
-				const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-				rect.setAttribute("x", `${x}`)
-				rect.setAttribute("y", `${y}`)
-				rect.setAttribute("width", "1")
-				rect.setAttribute("height", "1")
-				rect.setAttribute("fill", color)
-
-				rect.setAttribute("highlight", "false")
-				rect.addEventListener("click", (event) => {
-					if (event.button !== 2) return
-					rect.setAttribute("highlight", `${rect.getAttribute("highlight") !== "true"}`)
-					if (rect.getAttribute("highlight") === "true") {
-						rect.setAttribute("fill", "red")
-					} else {
-						rect.setAttribute("fill", color)
-					}
-				})
-				svg.appendChild(rect)
-			})
-		})
 	}
 
 	/**
@@ -86,6 +54,7 @@ export class Board {
 	 * Get the piece at a given location
 	 */
 	get(loc: Loc): Piece | null {
+		if (!this.valid(loc)) return null
 		return this.raw[loc.y][loc.x]
 	}
 

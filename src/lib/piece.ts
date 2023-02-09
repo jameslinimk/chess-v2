@@ -1,6 +1,6 @@
-import { calculateMoves, type PieceAttribute } from "./attributes.js"
 import type { Board } from "./board.js"
-import type { Loc } from "./util.js"
+import { Attribute, calculateMoves, direction_expander, type Jumping, type PieceAttribute, type ThresholdMove } from "./pieceAttributes.js"
+import { ct, loc, type Loc } from "./util.js"
 
 export enum Color {
 	White,
@@ -64,7 +64,7 @@ export class Piece {
 	}
 
 	getImage(): string {
-		return pieceImages[this.name][this.color]
+		return `./pieces/${pieceImages[this.name][this.color]}`
 	}
 
 	getMoves(board: Board): Loc[] {
@@ -72,5 +72,27 @@ export class Piece {
 			calculateMoves(attr, acc, board, this)
 			return acc
 		}, [])
+	}
+
+	static newPawn(color: Color, pos: Loc): Piece {
+		const y_dir = ct(color, 1, -1)
+		return new Piece(
+			Name.Pawn,
+			pos,
+			[
+				<ThresholdMove>{
+					kind: Attribute.DoubleMove,
+					direction: loc(0, y_dir * 2),
+					y_threshold: ct(color, 6, 1),
+				},
+				<Jumping>{
+					kind: Attribute.Jumping,
+					direction: loc(0, y_dir),
+				},
+				...direction_expander(Attribute.Capture, [loc(1, y_dir), loc(-1, y_dir)]),
+			],
+			1,
+			color
+		)
 	}
 }

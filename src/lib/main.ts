@@ -1,8 +1,8 @@
-import { Board } from "./board.js"
 import { Config } from "./config.js"
+import { Game } from "./game.js"
 
-export const main = (svg: SVGElement) => {
+export const main = (board: HTMLDivElement) => {
 	Config.load()
-	const board = Board.defaultBoard()
-	board.initDraw(svg)
+	const game = new Game()
+	game.initDraw(board)
 }
