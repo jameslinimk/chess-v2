@@ -32,6 +32,10 @@ export enum Attribute {
 	DoubleMove = 3,
 	/**
 	 * **!! EN PASSANT !!**
+	 *
+	 * Piece can capture the last moved pieces if it is `(x, y)` squares away from it
+	 *
+	 * IE: Pawns can capture an enemy pawn if it is 1 square away diagonally
 	 */
 	EnPassant = 4,
 	/**
@@ -42,90 +46,122 @@ export enum Attribute {
 	Protected = 10,
 }
 
-export interface Sliding {
-	kind: Attribute.Sliding
-	direction: Loc
+export class Sliding implements PieceAttribute {
+	kind = Attribute.Sliding
+	constructor(public direction: Loc) {}
+
+	getMoves(moves: Loc[], board: Board, piece: Piece): Loc[] {
+		const dir = this.direction
+		const start = piece.pos
+
+		let pos = start
+		for (;;) {
+			pos = pos.add(dir)
+			if (!board.valid(pos) || board.get(pos) !== null) break
+			moves.push(pos)
+		}
+		return moves
+	}
+
+	getAttacks(captures: Loc[], board: Board, piece: Piece): Loc[] {
+		const dir = this.direction
+		const start = piece.pos
+
+		let pos = start
+		for (;;) {
+			pos = pos.add(dir)
+			if (!board.valid(pos) || board.get(pos) !== null) break
+			captures.push(pos)
+			break
+		}
+		return captures
+	}
 }
 
-export interface Jumping {
-	kind: Attribute.Jumping
-	direction: Loc
+export class Jumping implements PieceAttribute {
+	kind = Attribute.Jumping
+	constructor(public direction: Loc) {}
+
+	getMoves(moves: Loc[], board: Board, piece: Piece): Loc[] {
+		const pos = piece.pos.add(this.direction)
+		if (board.valid(pos) && board.get(pos) === null) moves.push(pos)
+		return moves
+	}
+
+	getAttacks(captures: Loc[], board: Board, piece: Piece): Loc[] {
+		const pos = piece.pos.add(this.direction)
+		if (board.valid(pos) && board.get(pos) !== null) captures.push(pos)
+		return captures
+	}
 }
 
-export interface Capture {
-	kind: Attribute.Capture
-	direction: Loc
+export class Capture implements PieceAttribute {
+	kind = Attribute.Capture
+	constructor(public direction: Loc) {}
+
+	getMoves(moves: Loc[], board: Board, piece: Piece): Loc[] {
+		return moves
+	}
+
+	getAttacks(captures: Loc[], board: Board, piece: Piece): Loc[] {
+		const pos = piece.pos.add(this.direction)
+		if (board.valid(pos) && board.get(pos)?.color !== piece.color) captures.push(pos)
+		return captures
+	}
 }
 
-export interface ThresholdMove {
-	kind: Attribute.DoubleMove
-	direction: Loc
-	y_threshold: number
+export class ThresholdMove implements PieceAttribute {
+	kind = Attribute.DoubleMove
+	constructor(public direction: Loc, public y_threshold: number) {}
+
+	getMoves(moves: Loc[], board: Board, piece: Piece): Loc[] {
+		const pos = piece.pos.add(this.direction)
+		if (board.valid(pos) && board.get(pos) === null && piece.pos.y === this.y_threshold) moves.push(pos)
+		return moves
+	}
+
+	getAttacks(captures: Loc[], board: Board, piece: Piece): Loc[] {
+		return captures
+	}
 }
 
-export interface EnPassant {
-	kind: Attribute.EnPassant
+export class EnPassant implements PieceAttribute {
+	kind = Attribute.EnPassant
+	constructor(public direction: Loc) {}
+
+	getMoves(moves: Loc[], board: Board, piece: Piece): Loc[] {
+		return moves
+	}
+
+	getAttacks(captures: Loc[], board: Board, piece: Piece): Loc[] {
+		return captures
+	}
 }
 
 /**
  * Creates a list of attributes for a piece given a list of directions
  */
-export const direction_expander = (kind: Attribute, directions: Loc[]): PieceAttribute[] => {
-	return directions.map(
-		(dir) =>
-			<PieceAttribute>{
-				kind,
-				direction: dir,
-			}
-	)
+export const direction_expander = <T>(kind: new (dir: Loc) => T, directions: Loc[]): T[] => {
+	return directions.map((dir) => new kind(dir))
 }
 
-export interface Protected {
-	kind: Attribute.Protected
-}
+export class Protected implements PieceAttribute {
+	kind = Attribute.Protected
 
-export const calculateMoves = (attr: PieceAttribute, moves: Loc[], board: Board, piece: Piece): Loc[] => {
-	if (isSliding(attr)) {
-		const dir = attr.direction
-		const start = piece.pos
-
-		let pos = start
-		while (true) {
-			pos = pos.add(dir)
-			if (!board.valid(pos) || board.get(pos) !== null) break
-			moves.push(pos)
-		}
-	} else if (isStepping(attr)) {
-		const dir = attr.direction
-		const pos = piece.pos.add(dir)
-		if (board.valid(pos) && board.get(pos) === null) {
-			moves.push(pos)
-		}
-	} else if (isProtected(attr)) {
-	} else if (isCapture(attr)) {
-		const dir = attr.direction
-		const pos = piece.pos.add(dir)
-		if (board.valid(pos) && board.get(pos)?.color !== piece.color) {
-			moves.push(pos)
-		}
-	} else if (isThresholdMove(attr)) {
-		const dir = attr.direction
-		const pos = piece.pos.add(dir)
-		if (board.valid(pos) && board.get(pos) === null && piece.pos.y === attr.y_threshold) {
-			moves.push(pos)
-		}
-	} else if (isEnPassant(attr)) {
-		const lastMove = board.moveHistory[board.moveHistory.length - 1]
-		if (lastMove === undefined) return moves
+	getMoves(moves: Loc[], board: Board, piece: Piece): Loc[] {
+		return moves
+		// return moves.filter((move) => !board.isAttacked(move, piece.color))
 	}
-	return moves
+
+	getAttacks(captures: Loc[], board: Board, piece: Piece): Loc[] {
+		return captures
+		// return captures.filter((move) => !board.isAttacked(move, piece.color))
+	}
 }
 
-export const isSliding = (piece: PieceAttribute): piece is Sliding => piece.kind === Attribute.Sliding
-export const isStepping = (piece: PieceAttribute): piece is Jumping => piece.kind === Attribute.Jumping
-export const isProtected = (piece: PieceAttribute): piece is Protected => piece.kind === Attribute.Protected
-export const isCapture = (piece: PieceAttribute): piece is Capture => piece.kind === Attribute.Capture
-export const isThresholdMove = (piece: PieceAttribute): piece is ThresholdMove => piece.kind === Attribute.DoubleMove
-export const isEnPassant = (piece: PieceAttribute): piece is EnPassant => piece.kind === Attribute.EnPassant
+export interface PieceAttribute {
+	kind: Attribute
 
-export type PieceAttribute = Sliding | Jumping | Protected | Capture | ThresholdMove | EnPassant
+	getMoves(moves: Loc[], board: Board, piece: Piece): Loc[]
+	getAttacks(moves: Loc[], board: Board, piece: Piece): Loc[]
+}

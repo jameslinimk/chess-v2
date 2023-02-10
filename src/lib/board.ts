@@ -11,19 +11,22 @@ const emptyColorInit = <T>(init: T): Record<Color, T> => {
 	}, {} as Record<Color, T>)
 }
 
-interface MoveData {
+export interface MoveData {
 	from: Loc
 	to: Loc
+	piece: Piece
 
-	castle: boolean
-	enPassant: boolean
-	promote: Piece | null
+	capture?: Piece
+	castle?: "king" | "queen"
+	enPassant?: boolean
+	promote?: Piece
 }
 
 export class Board {
 	raw: (Piece | null)[][]
-	currentMove: Color = Color.White
+	currentMove = Color.White
 	moveHistory: MoveData[] = []
+	halfMoveClock = 0
 
 	attacks: Record<Color, Loc[]> = emptyColorInit([])
 	moves: Record<Color, Loc[]> = emptyColorInit([])
@@ -75,6 +78,45 @@ export class Board {
 	static fromFen(fen: string): Board {
 		const board = new Board(8, 8)
 		const [pieces, turn, castle, enPassant, halfMove, fullMove] = fen.split(" ")
+
+		// Set pieces
+		pieces.split("/").forEach((row, y) => {
+			let x = 0
+			row.split("").forEach((char) => {
+				if (char.match(/\d/)) {
+					x += parseInt(char)
+					return
+				}
+
+				board.set(loc(x, y), Piece.fromFen(char, loc(x, y)))
+				x++
+			})
+		})
+
+		// Set turn
+		board.currentMove = turn === "w" ? Color.White : Color.Black
+
+		// Set castle rights
+		if (castle.includes("K")) board.castleRights[Color.White][0] = true
+		if (castle.includes("Q")) board.castleRights[Color.White][1] = true
+		if (castle.includes("k")) board.castleRights[Color.Black][0] = true
+		if (castle.includes("q")) board.castleRights[Color.Black][1] = true
+
+		// Set en passant TODO
+
+		// Set half move
+		board.halfMoveClock = parseInt(halfMove)
+
+		// Set full move
+		let fullMoves = parseInt(fullMove) * 2
+		if (board.currentMove === Color.Black) fullMoves--
+		for (let i = 0; i < fullMoves; i++) {
+			board.moveHistory.push({
+				from: loc(0, 0),
+				to: loc(0, 0),
+				piece: Piece.newPawn(Color.White, loc(0, 0)),
+			})
+		}
 
 		return board
 	}

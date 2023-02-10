@@ -62,7 +62,7 @@ export class Game {
 				td.style.backgroundSize = "70%"
 
 				if (piece !== null) {
-					td.style.backgroundImage = `url("${piece.getImage()}")`
+					td.style.backgroundImage = `url("${piece.image}")`
 					td.onclick = () => {
 						console.log(piece.getMoves(this.board))
 					}
