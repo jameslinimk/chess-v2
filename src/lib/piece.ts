@@ -1,7 +1,19 @@
-import type { Board } from "./board.js"
-import { Capture, EnPassant, Jumping, Protected, ThresholdMove, direction_expander, type PieceAttribute } from "./pieceAttributes.js"
+import type { Board, MoveData } from "./board.js"
+import {
+	Capture,
+	EnPassant,
+	Jumping,
+	Protected,
+	ThresholdMove,
+	direction_expander,
+	direction_expander_ea,
+	type PieceAttribute,
+} from "./pieceAttributes.js"
 import { ct, loc, type Loc } from "./util.js"
 
+/**
+ * The color of a piece, such as `White` or `Black`
+ */
 export enum Color {
 	White,
 	Black,
@@ -19,7 +31,10 @@ export enum Name {
 	King,
 }
 
-const pieceImages: Record<Name, Record<Color, string>> = {
+/**
+ * Map of piece names to piece images (svg)
+ */
+export const pieceImages: Record<Name, Record<Color, string>> = {
 	[Name.Pawn]: {
 		[Color.White]: "standard/pw.svg",
 		[Color.Black]: "standard/pb.svg",
@@ -46,7 +61,10 @@ const pieceImages: Record<Name, Record<Color, string>> = {
 	},
 }
 
-const pieceValues: Record<Name, number> = {
+/**
+ * Map of piece names to piece values
+ */
+export const pieceValues: Record<Name, number> = {
 	[Name.Pawn]: 1,
 	[Name.Knight]: 3,
 	[Name.Bishop]: 3,
@@ -55,7 +73,10 @@ const pieceValues: Record<Name, number> = {
 	[Name.King]: 0,
 }
 
-const pieceSymbols: Record<Name, string> = {
+/**
+ * Map of piece names to piece symbols
+ */
+export const pieceSymbols: Record<Name, string> = {
 	[Name.Pawn]: "p",
 	[Name.Rook]: "r",
 	[Name.Knight]: "n",
@@ -64,34 +85,58 @@ const pieceSymbols: Record<Name, string> = {
 	[Name.King]: "k",
 }
 
-const symbolPieces: Record<string, Name> = Object.entries(pieceSymbols).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {})
+/**
+ * Map of piece symbols to piece names
+ */
+export const symbolPieces: Record<string, Name> = Object.entries(pieceSymbols).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {})
 
+/**
+ * Class to represent a piece on the board
+ */
 export class Piece {
+	/**
+	 * The attributes of the piece, such as `Jumping`, `Capture`, etc.
+	 */
 	attributes: PieceAttribute[]
 	constructor(public name: Name, public pos: Loc, attributes: PieceAttribute[], public color: Color) {
 		this.attributes = attributes.sort((a, b) => a.kind - b.kind)
 	}
 
+	/**
+	 * Path to the image of the piece (svg)
+	 */
 	get image(): string {
 		return `./pieces/${pieceImages[this.name][this.color]}`
 	}
 
+	/**
+	 * The value of the piece
+	 */
 	get value(): number {
 		return pieceValues[this.name]
 	}
 
-	getMoves(board: Board): Loc[] {
+	/**
+	 * Get a list of legal moves for the piece
+	 */
+	getMoves(board: Board): MoveData[] {
 		return this.attributes.reduce((acc, attr) => {
 			attr.getMoves(acc, board, this)
 			return acc
 		}, [])
 	}
 
+	/**
+	 * Create a new piece from a FEN string
+	 */
 	static fromFen(fen: string, pos: Loc): Piece {
-		const constructor = pieceConstructors[symbolPieces[fen.toLowerCase()]]
+		const constructor = this.pieceConstructors[symbolPieces[fen.toLowerCase()]]
 		return constructor(fen === fen.toUpperCase() ? Color.White : Color.Black, pos)
 	}
 
+	/**
+	 * Creates a new pawn with the given color and position
+	 */
 	static newPawn(color: Color, pos: Loc): Piece {
 		const y_dir = ct(color, 1, -1)
 		return new Piece(
@@ -100,13 +145,16 @@ export class Piece {
 			[
 				new ThresholdMove(loc(0, y_dir), ct(color, 6, 1)),
 				new Jumping(loc(1, y_dir)),
-				new EnPassant(),
+				...direction_expander_ea(EnPassant, [loc(1, 0), loc(-1, 0)], Name.Pawn),
 				...direction_expander(Capture, [loc(1, y_dir), loc(-1, y_dir)]),
 			],
 			color
 		)
 	}
 
+	/**
+	 * Creates a new knight with the given color and position
+	 */
 	static newKnight(color: Color, pos: Loc): Piece {
 		return new Piece(
 			Name.Knight,
@@ -116,14 +164,23 @@ export class Piece {
 		)
 	}
 
+	/**
+	 * Creates a new bishop with the given color and position
+	 */
 	static newBishop(color: Color, pos: Loc): Piece {
 		return new Piece(Name.Bishop, pos, direction_expander(Jumping, [loc(1, 1), loc(1, -1), loc(-1, -1), loc(-1, 1)]), color)
 	}
 
+	/**
+	 * Creates a new rook with the given color and position
+	 */
 	static newRook(color: Color, pos: Loc): Piece {
 		return new Piece(Name.Rook, pos, direction_expander(Jumping, [loc(1, 0), loc(0, 1), loc(-1, 0), loc(0, -1)]), color)
 	}
 
+	/**
+	 * Creates a new queen with the given color and position
+	 */
 	static newQueen(color: Color, pos: Loc): Piece {
 		return new Piece(
 			Name.Queen,
@@ -133,6 +190,9 @@ export class Piece {
 		)
 	}
 
+	/**
+	 * Creates a new king with the given color and position
+	 */
 	static newKing(color: Color, pos: Loc): Piece {
 		return new Piece(
 			Name.King,
@@ -144,13 +204,16 @@ export class Piece {
 			color
 		)
 	}
-}
 
-const pieceConstructors: Record<Name, (color: Color, pos: Loc) => Piece> = {
-	[Name.Pawn]: Piece.newPawn,
-	[Name.Rook]: Piece.newRook,
-	[Name.Knight]: Piece.newKnight,
-	[Name.Bishop]: Piece.newBishop,
-	[Name.Queen]: Piece.newQueen,
-	[Name.King]: Piece.newKing,
+	/**
+	 * Map of piece names to piece constructors
+	 */
+	static pieceConstructors: Record<Name, (color: Color, pos: Loc) => Piece> = {
+		[Name.Pawn]: Piece.newPawn,
+		[Name.Rook]: Piece.newRook,
+		[Name.Knight]: Piece.newKnight,
+		[Name.Bishop]: Piece.newBishop,
+		[Name.Queen]: Piece.newQueen,
+		[Name.King]: Piece.newKing,
+	}
 }
