@@ -143,8 +143,8 @@ export class Piece {
 			Name.Pawn,
 			pos,
 			[
-				new ThresholdMove(loc(0, y_dir), ct(color, 6, 1)),
-				new Jumping(loc(1, y_dir)),
+				new ThresholdMove(loc(0, y_dir * 2), ct(color, 6, 1)),
+				new Jumping(loc(0, y_dir)),
 				...direction_expander_ea(EnPassant, [loc(1, 0), loc(-1, 0)], Name.Pawn),
 				...direction_expander(Capture, [loc(1, y_dir), loc(-1, y_dir)]),
 			],
