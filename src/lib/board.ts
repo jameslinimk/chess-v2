@@ -1,5 +1,6 @@
+import { fromFen, get, set, valid } from "./board_utils.js"
 import { Color, Piece } from "./piece.js"
-import { loc, locA, oc, type Loc } from "./util.js"
+import type { Loc } from "./util.js"
 
 /**
  * Create a record with all colors as keys and `init` as values
@@ -88,9 +89,18 @@ export class Board {
 	 */
 	moveHistory: MoveData[] = []
 	/**
+	 * The hash's of the previous positions that have been played
+	 */
+	hashHistory: number[] = []
+	/**
 	 * The number of half moves since the last capture or pawn move
 	 */
 	halfMoveClock = 0
+
+	/**
+	 * The hash of the current position
+	 */
+	hash = 0
 
 	/**
 	 * Squares that are attacked by each color
@@ -112,6 +122,24 @@ export class Board {
 			for (const move of this.attacks[col]) moves.add(move)
 		})
 		return moves
+	}
+
+	/**
+	 * Sets `this.hash` to the hash of the current position
+	 */
+	updateHash() {
+		const p = 31
+		const m = 1e9 + 9
+
+		let hash = 0
+		this.raw.forEach((row) => {
+			row.forEach((pi) => {
+				const piece = pi?.name ?? 0
+				hash = (hash * p + piece) % m
+			})
+		})
+
+		this.hash = hash
 	}
 
 	/**
@@ -148,85 +176,17 @@ export class Board {
 	/**
 	 * Get the piece at a given location
 	 */
-	get(loc: Loc): Piece | null {
-		if (!this.valid(loc)) return null
-		return this.raw[loc.y][loc.x]
-	}
-
+	get = get
 	/**
 	 * Set the piece at a given location
 	 */
-	set(loc: Loc, piece: Piece | null) {
-		this.raw[loc.y][loc.x] = piece
-	}
-
+	set = set
 	/**
 	 * Check if a location is valid (on the board)
 	 */
-	valid(loc: Loc): boolean {
-		return loc.x >= 0 && loc.x < this.width && loc.y >= 0 && loc.y < this.height
-	}
-
+	valid = valid
 	/**
 	 * Creates a board from a FEN string
 	 */
-	static fromFen(fen: string): Board {
-		const board = new Board(8, 8)
-		const [pieces, turn, castle, enPassant, halfMove, fullMove] = fen.split(" ")
-
-		// Set pieces
-		pieces.split("/").forEach((row, y) => {
-			let x = 0
-			row.split("").forEach((char) => {
-				if (char.match(/\d/)) {
-					x += parseInt(char)
-					return
-				}
-
-				board.set(loc(x, y), Piece.fromFen(char, loc(x, y)))
-				x++
-			})
-		})
-
-		// Set turn
-		board.currentMove = turn === "w" ? Color.White : Color.Black
-
-		// Set castle rights
-		if (castle.includes("K")) board.castleRights[Color.White][0] = true
-		if (castle.includes("Q")) board.castleRights[Color.White][1] = true
-		if (castle.includes("k")) board.castleRights[Color.Black][0] = true
-		if (castle.includes("q")) board.castleRights[Color.Black][1] = true
-
-		// Set half move
-		board.halfMoveClock = parseInt(halfMove)
-
-		// Set full move
-		let fullMoves = parseInt(fullMove) * 2
-		if (board.currentMove === Color.Black) fullMoves--
-		for (let i = 0; i < fullMoves; i++) {
-			board.moveHistory.push(
-				new MoveData({
-					piece: Piece.newPawn(Color.White, loc(0, 0)),
-					to: loc(0, 0),
-				})
-			)
-		}
-
-		// Set en passant
-		if (enPassant !== "-") {
-			const targetSquare = locA(enPassant)
-			targetSquare.y += board.currentMove === Color.White ? -1 : 1
-			const newMove = new MoveData({
-				piece: Piece.newPawn(oc(board.currentMove), targetSquare),
-				to: targetSquare,
-			})
-			if (board.moveHistory.length === 0) {
-				board.moveHistory.push(newMove)
-			} else {
-				board.moveHistory[board.moveHistory.length - 1] = newMove
-			}
-		}
-
-		return board
-	}
+	static fromFen = fromFen
 }

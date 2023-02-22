@@ -23,54 +23,12 @@ export enum Color {
  * Name of the a piece, such as `Pawn`, `Rook`, `Knight`, `Bishop`, `Queen`, or `King`
  */
 export enum Name {
-	Pawn,
-	Rook,
-	Knight,
-	Bishop,
-	Queen,
-	King,
-}
-
-/**
- * Map of piece names to piece images (svg)
- */
-export const pieceImages: Record<Name, Record<Color, string>> = {
-	[Name.Pawn]: {
-		[Color.White]: "standard/pw.svg",
-		[Color.Black]: "standard/pb.svg",
-	},
-	[Name.Rook]: {
-		[Color.White]: "standard/rw.svg",
-		[Color.Black]: "standard/rb.svg",
-	},
-	[Name.Knight]: {
-		[Color.White]: "standard/nw.svg",
-		[Color.Black]: "standard/nb.svg",
-	},
-	[Name.Bishop]: {
-		[Color.White]: "standard/bw.svg",
-		[Color.Black]: "standard/bb.svg",
-	},
-	[Name.Queen]: {
-		[Color.White]: "standard/qw.svg",
-		[Color.Black]: "standard/qb.svg",
-	},
-	[Name.King]: {
-		[Color.White]: "standard/kw.svg",
-		[Color.Black]: "standard/kb.svg",
-	},
-}
-
-/**
- * Map of piece names to piece values
- */
-export const pieceValues: Record<Name, number> = {
-	[Name.Pawn]: 1,
-	[Name.Knight]: 3,
-	[Name.Bishop]: 3,
-	[Name.Rook]: 5,
-	[Name.Queen]: 9,
-	[Name.King]: 0,
+	Pawn = 1,
+	Rook = 2,
+	Knight = 3,
+	Bishop = 4,
+	Queen = 5,
+	King = 6,
 }
 
 /**
@@ -86,7 +44,7 @@ export const pieceSymbols: Record<Name, string> = {
 }
 
 /**
- * Map of piece symbols to piece names
+ * Map of piece symbols to piece names, inverse of `pieceSymbols`
  */
 export const symbolPieces: Record<string, Name> = Object.entries(pieceSymbols).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {})
 
@@ -106,6 +64,33 @@ export class Piece {
 	 * Path to the image of the piece (svg)
 	 */
 	get image(): string {
+		const pieceImages = {
+			[Name.Pawn]: {
+				[Color.White]: "standard/pw.svg",
+				[Color.Black]: "standard/pb.svg",
+			},
+			[Name.Rook]: {
+				[Color.White]: "standard/rw.svg",
+				[Color.Black]: "standard/rb.svg",
+			},
+			[Name.Knight]: {
+				[Color.White]: "standard/nw.svg",
+				[Color.Black]: "standard/nb.svg",
+			},
+			[Name.Bishop]: {
+				[Color.White]: "standard/bw.svg",
+				[Color.Black]: "standard/bb.svg",
+			},
+			[Name.Queen]: {
+				[Color.White]: "standard/qw.svg",
+				[Color.Black]: "standard/qb.svg",
+			},
+			[Name.King]: {
+				[Color.White]: "standard/kw.svg",
+				[Color.Black]: "standard/kb.svg",
+			},
+		}
+
 		return `./pieces/${pieceImages[this.name][this.color]}`
 	}
 
@@ -113,6 +98,14 @@ export class Piece {
 	 * The value of the piece
 	 */
 	get value(): number {
+		const pieceValues = {
+			[Name.Pawn]: 1,
+			[Name.Knight]: 3,
+			[Name.Bishop]: 3,
+			[Name.Rook]: 5,
+			[Name.Queen]: 9,
+			[Name.King]: 0,
+		}
 		return pieceValues[this.name]
 	}
 
@@ -138,7 +131,7 @@ export class Piece {
 	 * Creates a new pawn with the given color and position
 	 */
 	static newPawn(color: Color, pos: Loc): Piece {
-		const y_dir = ct(color, 1, -1)
+		const y_dir = ct(color, -1, 1)
 		return new Piece(
 			Name.Pawn,
 			pos,

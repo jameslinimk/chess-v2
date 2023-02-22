@@ -1,10 +1,12 @@
 import { Board } from "./board.js"
 import { config } from "./config.js"
+import { loc, type Loc } from "./util.js"
 
 export class Game {
 	board = Board.defaultBoard()
+	selectedPiece: Loc | null = null
 
-	initDraw(parent: HTMLDivElement) {
+	draw(parent: HTMLDivElement) {
 		while (parent.firstChild) parent.removeChild(parent.firstChild)
 
 		const scale = 1
@@ -61,10 +63,14 @@ export class Game {
 				td.style.backgroundRepeat = "no-repeat"
 				td.style.backgroundSize = "70%"
 
+				if (this.selectedPiece === loc(x, y)) td.style.border = `2px solid red`
+
 				if (piece !== null) {
 					td.style.backgroundImage = `url("${piece.image}")`
 					td.onclick = () => {
 						console.log(piece.getMoves(this.board))
+						this.selectedPiece = loc(x, y)
+						this.draw(parent)
 					}
 				}
 
