@@ -16,7 +16,7 @@ export function valid(this: Board, loc: Loc): boolean {
 }
 
 export const fromFen = (fen: string): Board => {
-	const board = new Board(8, 8)
+	const board = new Board(8, 8, 2)
 	const [pieces, turn, castle, enPassant, halfMove, fullMove] = fen.split(" ")
 
 	// Set pieces

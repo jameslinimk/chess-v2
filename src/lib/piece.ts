@@ -17,10 +17,19 @@ import { ct, loc, type Loc } from "./util.js"
 export enum Color {
 	White,
 	Black,
+	Green,
+	Red,
+	Yellow,
 }
 
 /**
+ * The default order of the turns of the colors
+ */
+export const ColorOrder = [Color.White, Color.Black, Color.Green, Color.Red, Color.Yellow]
+
+/**
  * Name of the a piece, such as `Pawn`, `Rook`, `Knight`, `Bishop`, `Queen`, or `King`
+ * - Shifted by 1 to allow for `0` to be used as a empty value
  */
 export enum Name {
 	Pawn = 1,
@@ -64,49 +73,29 @@ export class Piece {
 	 * Path to the image of the piece (svg)
 	 */
 	get image(): string {
-		const pieceImages = {
-			[Name.Pawn]: {
-				[Color.White]: "standard/pw.svg",
-				[Color.Black]: "standard/pb.svg",
-			},
-			[Name.Rook]: {
-				[Color.White]: "standard/rw.svg",
-				[Color.Black]: "standard/rb.svg",
-			},
-			[Name.Knight]: {
-				[Color.White]: "standard/nw.svg",
-				[Color.Black]: "standard/nb.svg",
-			},
-			[Name.Bishop]: {
-				[Color.White]: "standard/bw.svg",
-				[Color.Black]: "standard/bb.svg",
-			},
-			[Name.Queen]: {
-				[Color.White]: "standard/qw.svg",
-				[Color.Black]: "standard/qb.svg",
-			},
-			[Name.King]: {
-				[Color.White]: "standard/kw.svg",
-				[Color.Black]: "standard/kb.svg",
-			},
+		const colorPrefix = {
+			[Color.White]: "w",
+			[Color.Black]: "b",
+			[Color.Green]: "g",
+			[Color.Red]: "r",
+			[Color.Yellow]: "y",
 		}
 
-		return `./pieces/${pieceImages[this.name][this.color]}`
+		return `./pieces/${colorPrefix[this.color]}${pieceSymbols[this.name]}.svg`
 	}
 
 	/**
 	 * The value of the piece
 	 */
 	get value(): number {
-		const pieceValues = {
+		return {
 			[Name.Pawn]: 1,
 			[Name.Knight]: 3,
 			[Name.Bishop]: 3,
 			[Name.Rook]: 5,
 			[Name.Queen]: 9,
 			[Name.King]: 0,
-		}
-		return pieceValues[this.name]
+		}[this.name]
 	}
 
 	/**

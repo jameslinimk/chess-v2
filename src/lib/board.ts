@@ -70,6 +70,10 @@ export class MoveData implements MoveDataConfig {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return this.to ?? this.capture!.pos
 	}
+
+	get color() {
+		return this.piece.color
+	}
 }
 
 /**
@@ -110,16 +114,20 @@ export class Board {
 	 * Available moves for each color
 	 */
 	moves: Record<Color, Set<Loc>> = emptyColorInit(new Set())
+	/**
+	 * Castle rights for each color, in the form `[kingSide, queenSide]`
+	 */
+	castleRights: Record<Color, [boolean, boolean]> = emptyColorInit([true, true])
 
 	/**
-	 * Get a combined set of all attacks by all colors except `color`
+	 * Get a combined set of all sets in `record` except `color`
 	 */
-	otherAttacks(color: Color): Set<Loc> {
-		const moves = new Set<Loc>()
-		const colors = Object.keys(this.attacks) as unknown as Color[]
+	other<T>(record: Record<Color, Set<T>>, color: Color): Set<T> {
+		const moves = new Set<T>()
+		const colors = Object.keys(record) as unknown as Color[]
 		colors.forEach((col) => {
 			if (col === color) return
-			for (const move of this.attacks[col]) moves.add(move)
+			for (const move of record[col]) moves.add(move)
 		})
 		return moves
 	}
@@ -142,12 +150,7 @@ export class Board {
 		this.hash = hash
 	}
 
-	/**
-	 * Castle rights for each color, in the form `[kingSide, queenSide]`
-	 */
-	castleRights: Record<Color, [boolean, boolean]> = emptyColorInit([true, true])
-
-	constructor(public width: number, public height: number) {
+	constructor(public width: number, public height: number, public players: number) {
 		this.raw = Array.from(Array(width), () => Array.from(Array(height), () => null))
 	}
 
