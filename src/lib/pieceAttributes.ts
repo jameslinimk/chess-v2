@@ -154,7 +154,7 @@ export class Protected implements PieceAttribute {
 	kind = Attribute.Protected
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
 		return moves.filter((move) => {
-			if (board.otherAttacks(piece.color).has(move.abTo)) return false
+			if (board.other(board.attacks, piece.color).has(move.abTo)) return false
 			return true
 		})
 	}

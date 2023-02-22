@@ -81,7 +81,7 @@ export class Piece {
 			[Color.Yellow]: "y",
 		}
 
-		return `./pieces/${colorPrefix[this.color]}${pieceSymbols[this.name]}.svg`
+		return `./pieces/standard/${pieceSymbols[this.name]}${colorPrefix[this.color]}.svg`
 	}
 
 	/**
