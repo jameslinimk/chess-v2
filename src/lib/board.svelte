@@ -1,49 +1,67 @@
 <script lang="ts">
-	import type { Board } from "./board.js"
+	import { boardWritable } from "./board.js"
+	import { configWritable } from "./config.js"
 
-	export let board: Board
+	export let squareSize = 50
+
+	const boardWidth = ($boardWritable?.width ?? 0) * squareSize
+	const boardHeight = ($boardWritable?.height ?? 0) * squareSize
+
+	const sqColor = (x: number, y: number) => ((x + y) % 2 === 0 ? "white" : "black")
 </script>
 
-<table class="board">
-	{#each board.raw as row}
-		{#each row as cell}
-			{cell}
+{#if $boardWritable}
+	<div
+		class="board"
+		style={`
+			--board-width: ${boardWidth}px;
+			--board-height: ${boardHeight}px;
+			--square-size: ${squareSize}px;
+			--white-color: ${$configWritable.white};
+			--black-color: ${$configWritable.black};
+		`}
+	>
+		{#each $boardWritable.raw as row, y}
+			{#each row as cell, x}
+				{#if cell === null}
+					<div class={sqColor(x, y)} />
+				{:else}
+					<div class="{sqColor(x, y)} pieceSquare" style="--piece-image: {cell.image}" />
+				{/if}
+			{/each}
 		{/each}
-	{/each}
-</table>
+	</div>
+{/if}
 
-<style>
+<style lang="scss">
 	.board {
-		border-spacing: 0px;
-		border-collapse: collapse;
+		width: var(--board-width);
+		height: var(--board-height);
+		display: grid;
+		grid-template-columns: repeat(var(--board-width), var(--square-size));
+		grid-template-rows: repeat(var(--board-height), var(--square-size));
 	}
-	.board th {
-		padding: 0.5em;
+
+	.square {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
-	.board th + th {
-		border-bottom: 1px solid #000;
+
+	.black {
+		@extend .square;
+		background-color: var(--black-color);
 	}
-	.board th:first-child,
-	.board td:last-child {
-		border-right: 1px solid #000;
+
+	.white {
+		@extend .square;
+		background-color: var(--white-color);
 	}
-	.board tr:last-child td {
-		border-bottom: 1px solid;
-	}
-	.board th:empty {
-		border: none;
-	}
-	.board td {
-		width: 1.5em;
-		height: 1.5em;
-		text-align: center;
-		font-size: 32px;
-		line-height: 0;
-	}
-	.board .light {
-		background: #eee;
-	}
-	.board .dark {
-		background: #aaa;
+
+	.pieceSquare {
+		background-image: var(--piece-image);
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: 80%;
 	}
 </style>

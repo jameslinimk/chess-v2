@@ -1,7 +1,4 @@
-/**
- * The global configuration for the game
- */
-export let config: Config
+import { writable } from "svelte/store"
 
 /**
  * The configuration for the game
@@ -23,11 +20,13 @@ export class Config {
 	static load() {
 		const conf = JSON.parse(localStorage.getItem("config") || "null")
 		if (conf !== null) {
-			config = conf
+			configWritable.set(conf)
 			return
 		}
-
-		config = new Config()
-		config.save()
 	}
 }
+
+/**
+ * The global configuration for the game
+ */
+export const configWritable = writable(new Config())

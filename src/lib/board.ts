@@ -1,3 +1,4 @@
+import { writable } from "svelte/store"
 import { fromFen, get, set, valid } from "./board_utils.js"
 import { Color, Piece } from "./piece.js"
 import type { Loc } from "./util.js"
@@ -193,3 +194,5 @@ export class Board {
 	 */
 	static fromFen = fromFen
 }
+
+export const boardWritable = writable<Board | null>(null)
