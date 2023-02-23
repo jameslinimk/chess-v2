@@ -2,16 +2,42 @@
 	import { boardWritable } from "./board.js"
 	import { configWritable } from "./config.js"
 	import { loc, type Loc } from "./util.js"
-	import { ValueSet } from "./ValueSet.js"
+	import { ValueSet } from "./valueSet.js"
 
 	export let squareSize = 50
 	const sqColor = (x: number, y: number) => ((x + y) % 2 === 0 ? "white" : "black")
 
+	let board: HTMLDivElement
+	let boardOffset: [x: number, y: number] = [0, 0]
+	$: boardOffset = [board?.offsetLeft ?? 0, board?.offsetTop ?? 0]
+
 	let highlights = new ValueSet<Loc>()
 	let arrows = new ValueSet<[Loc, Loc]>()
 
+	let dragging: Loc | null = null
+	let draggingImg: string | null = null
+	$: if (dragging !== null) {
+		draggingImg = $boardWritable?.get(dragging)?.image ?? null
+	}
+
+	let showMoves: Loc | null = null
+	let moves = new ValueSet<Loc>()
+	$: if (showMoves !== null) {
+		moves = new ValueSet($boardWritable?.pieceMoves(showMoves)?.map((m) => m.abTo) ?? [])
+	}
+
+	let mousePos: [x: number, y: number] = [0, 0]
+	const onMousemove = (event: MouseEvent) => (mousePos = [event.clientX - boardOffset[0], event.clientY - boardOffset[1]])
+
+	const onMouseUp = (event: MouseEvent) => (dragging = null)
+	const onMouseDown = (event: MouseEvent, pos: Loc) => (dragging = pos)
+
 	const onClick = (event: MouseEvent, pos: Loc) => {
-		console.log("Test", pos)
+		const piece = $boardWritable?.get(pos)
+		if (piece === null || piece === undefined) {
+			highlights = new ValueSet<Loc>()
+			return
+		}
 	}
 
 	const onContext = (event: MouseEvent, pos: Loc) => {
@@ -27,8 +53,14 @@
 	}
 </script>
 
+<svelte:body on:mousemove={onMousemove} />
+
 {#if $boardWritable}
 	<div
+		bind:this={board}
+		on:mouseup={onMouseUp}
+		draggable="false"
+		on:dragstart={(e) => e.preventDefault()}
 		class="board"
 		style={`
 			--square-size: ${squareSize}px;
@@ -44,9 +76,13 @@
 			{#each row as cell, x}
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<div
-					class="{sqColor(x, y)} {cell === null ? '' : 'pieceSquare'} {highlights.has(loc(x, y)) ? 'highlight' : ''}"
-					style={cell === null ? "" : `--piece-image: url(${cell.image})`}
+					class={sqColor(x, y)}
+					class:highlight={highlights.has(loc(x, y))}
+					class:pieceSquare={cell !== null}
+					class:semi={dragging?.x === x && dragging?.y === y}
+					style={cell !== null ? `--piece-image: url(${cell.image});` : ""}
 					on:click={(e) => onClick(e, loc(x, y))}
+					on:mousedown={(e) => onMouseDown(e, loc(x, y))}
 					on:contextmenu={(e) => onContext(e, loc(x, y))}
 				/>
 			{/each}
@@ -59,6 +95,9 @@
 			</defs>
 			<line x1="0" y1="50" x2="250" y2="50" stroke="#000" stroke-width="8" marker-end="url(#arrowhead)" />
 		</svg>
+		{#if dragging !== null && draggingImg !== null}
+			<div class="dragging" style="--piece-image: url({draggingImg}); --mouse-x: {mousePos[0]}px; --mouse-y: {mousePos[1]}px;" />
+		{/if}
 	</div>
 {/if}
 
@@ -73,6 +112,17 @@
 		display: grid;
 		grid-template-columns: repeat(var(--raw-width), var(--square-size));
 		grid-template-rows: repeat(var(--raw-height), var(--square-size));
+	}
+
+	.dragging {
+		@extend .pieceSquare;
+		position: absolute;
+		transform: translate(-50%, -50%);
+		left: var(--mouse-x);
+		top: var(--mouse-y);
+		width: var(--square-size);
+		height: var(--square-size);
+		z-index: 100;
 	}
 
 	.arrows {
@@ -114,5 +164,9 @@
 		background-position: center;
 		background-repeat: no-repeat;
 		background-size: 80%;
+	}
+
+	.pieceSquare.semi {
+		opacity: 0.75;
 	}
 </style>

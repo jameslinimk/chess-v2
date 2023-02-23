@@ -1,10 +1,18 @@
+/**
+ * A set that can store any value, including objects and arrays
+ */
 export class ValueSet<T> {
-	private set: Set<string>
+	private set = new Set<string>()
 
-	constructor() {
-		this.set = new Set()
+	constructor(array?: T[]) {
+		if (array !== undefined) {
+			array.forEach((value) => this.add(value))
+		}
 	}
 
+	/**
+	 * Add a value to the set
+	 */
 	add(value: T) {
 		if (typeof value === "object" && value !== null) {
 			// For objects and arrays, stringify them and add the resulting string
@@ -15,6 +23,9 @@ export class ValueSet<T> {
 		}
 	}
 
+	/**
+	 * Delete a value from the set
+	 */
 	delete(value: T) {
 		if (typeof value === "object" && value !== null) {
 			// For objects and arrays, stringify them and delete the resulting string
@@ -25,6 +36,9 @@ export class ValueSet<T> {
 		}
 	}
 
+	/**
+	 * Check if a value is in the set
+	 */
 	has(value: T) {
 		if (typeof value === "object" && value !== null) {
 			// For objects and arrays, stringify them and check if the resulting string is in the set
@@ -35,10 +49,16 @@ export class ValueSet<T> {
 		}
 	}
 
+	/**
+	 * Clear the set
+	 */
 	clear() {
 		this.set.clear()
 	}
 
+	/**
+	 * The number of values in the set
+	 */
 	get size() {
 		return this.set.size
 	}

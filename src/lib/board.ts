@@ -114,11 +114,20 @@ export class Board {
 	/**
 	 * Available moves for each color
 	 */
-	moves: Record<Color, Set<Loc>> = emptyColorInit(new Set())
+	moves: Record<Color, MoveData[]> = emptyColorInit([])
 	/**
 	 * Castle rights for each color, in the form `[kingSide, queenSide]`
 	 */
 	castleRights: Record<Color, [boolean, boolean]> = emptyColorInit([true, true])
+
+	/**
+	 * Gets all legal moves for a piece
+	 */
+	pieceMoves(piece: Loc): MoveData[] {
+		const p = this.get(piece)
+		if (p === null) return []
+		return this.moves[p.color].filter((m) => m.piece.pos === piece)
+	}
 
 	/**
 	 * Get a combined set of all sets in `record` except `color`
