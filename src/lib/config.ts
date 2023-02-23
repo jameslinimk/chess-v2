@@ -6,6 +6,8 @@ import { writable } from "svelte/store"
 export class Config {
 	white = "#f0d9b5"
 	black = "#b58863"
+	whiteHighlight = "rgba(255, 255, 0, 0.5)"
+	blackHighlight = "rgba(255, 0, 0, 0.5)"
 
 	/**
 	 * Saves the configuration to local storage

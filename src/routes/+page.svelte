@@ -1,14 +1,11 @@
 <script lang="ts">
+	import Board from "$lib/board.svelte"
+	import { main } from "$lib/main.js"
 	import { onMount } from "svelte"
-	import { main } from "../lib/main.js"
 
-	let board: HTMLDivElement
 	onMount(() => {
-		main(board)
+		main()
 	})
 </script>
 
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-
-<div bind:this={board} />
+<Board />

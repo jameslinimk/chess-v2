@@ -26,6 +26,14 @@ export class Loc {
 	equals(other: Loc): boolean {
 		return this.x === other.x && this.y === other.y
 	}
+
+	toHash(): number {
+		return this.x * 8 + this.y
+	}
+
+	static fromHash(hash: number): Loc {
+		return loc(hash % 8, Math.floor(hash / 8))
+	}
 }
 
 /**
@@ -37,17 +45,8 @@ export const loc = (x: number, y: number): Loc => new Loc(x, y)
  * Shorthand for creating a loc given a chess notation
  */
 export const locA = (notation: string): Loc => {
-	const x = notation.charCodeAt(0) - "a".charCodeAt(0)
-	const y = {
-		"1": 7,
-		"2": 6,
-		"3": 5,
-		"4": 4,
-		"5": 3,
-		"6": 2,
-		"7": 1,
-		"8": 0,
-	}[notation[1]] as number
+	const x = notation.charCodeAt(0) - 97
+	const y = 8 - parseInt(notation[1])
 	return loc(x, y)
 }
 
