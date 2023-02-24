@@ -1,6 +1,7 @@
 import { MoveData, type Board } from "./board.js"
 import type { Name, Piece } from "./piece.js"
 import type { Loc } from "./util.js"
+import type { ValueSet } from "./valueSet.js"
 
 /**
  * Key is the priority of which the attribute will be applied
@@ -69,6 +70,12 @@ export class Sliding implements PieceAttribute {
 
 		return moves
 	}
+
+	getAttacks(attacks: ValueSet<Loc>, board: Board, piece: Piece): ValueSet<Loc> {
+		const atks = this.getMoves([], board, piece)
+		for (const atk of atks) attacks.add(atk.abTo)
+		return attacks
+	}
 }
 
 export class Jumping implements PieceAttribute {
@@ -91,6 +98,10 @@ export class Jumping implements PieceAttribute {
 		moves.push(new MoveData({ piece, to: pos }))
 		return moves
 	}
+
+	getAttacks(attacks: ValueSet<Loc>): ValueSet<Loc> {
+		return attacks
+	}
 }
 
 export class Capture implements PieceAttribute {
@@ -107,6 +118,11 @@ export class Capture implements PieceAttribute {
 		moves.push(new MoveData({ piece, capture: enemy }))
 		return moves
 	}
+
+	getAttacks(attacks: ValueSet<Loc>, _board: Board, piece: Piece): ValueSet<Loc> {
+		attacks.add(piece.pos.add(this.direction))
+		return attacks
+	}
 }
 
 export class ThresholdMove implements PieceAttribute {
@@ -116,6 +132,10 @@ export class ThresholdMove implements PieceAttribute {
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
 		if (piece.pos.y !== this.y_threshold) return moves
 		return new Jumping(this.direction).getMoves(moves, board, piece)
+	}
+
+	getAttacks(attacks: ValueSet<Loc>): ValueSet<Loc> {
+		return attacks
 	}
 }
 
@@ -132,6 +152,14 @@ export class EnPassant implements PieceAttribute {
 
 		moves.push(new MoveData({ piece, capture: lastMove.piece }))
 		return moves
+	}
+
+	/**
+	 * **! Note, this does not check if the piece matches `this.name` !**
+	 */
+	getAttacks(attacks: ValueSet<Loc>, _: Board, piece: Piece): ValueSet<Loc> {
+		attacks.add(piece.pos.add(this.direction))
+		return attacks
 	}
 }
 
@@ -158,6 +186,10 @@ export class Protected implements PieceAttribute {
 			return true
 		})
 	}
+
+	getAttacks(attacks: ValueSet<Loc>): ValueSet<Loc> {
+		return attacks
+	}
 }
 
 /**
@@ -173,4 +205,10 @@ export interface PieceAttribute {
 	 * Returns a list of moves that the piece can make
 	 */
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[]
+
+	/**
+	 * Returns a list of squares that the piece can attack
+	 * - Note: EnPassant does not check if the piece matches `name`
+	 */
+	getAttacks(attacks: ValueSet<Loc>, board: Board, piece: Piece): ValueSet<Loc>
 }

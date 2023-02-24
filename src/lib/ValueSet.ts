@@ -2,6 +2,15 @@
  * A set that can store any value, including objects and arrays
  */
 export class ValueSet<T> {
+	id = "valueSet"
+
+	/**
+	 * Check if a value is a `ValueSet`
+	 */
+	static isValueSet<T>(value: unknown): value is ValueSet<T> {
+		return typeof value === "object" && value !== null && (value as ValueSet<T>)?.id === "valueSet"
+	}
+
 	private set = new Set<string>()
 
 	constructor(array?: T[]) {
@@ -15,12 +24,17 @@ export class ValueSet<T> {
 	 */
 	add(value: T) {
 		if (typeof value === "object" && value !== null) {
-			// For objects and arrays, stringify them and add the resulting string
 			this.set.add(JSON.stringify(value))
 		} else {
-			// For non-object values, just add them directly
 			this.set.add(String(value))
 		}
+	}
+
+	/**
+	 * Add all values from another set to this set
+	 */
+	addSet(set: ValueSet<T>) {
+		set.forEach((value) => this.add(value))
 	}
 
 	/**
@@ -28,12 +42,10 @@ export class ValueSet<T> {
 	 */
 	delete(value: T) {
 		if (typeof value === "object" && value !== null) {
-			// For objects and arrays, stringify them and delete the resulting string
 			return this.set.delete(JSON.stringify(value))
-		} else {
-			// For non-object values, just delete them directly
-			return this.set.delete(String(value))
 		}
+
+		return this.set.delete(String(value))
 	}
 
 	/**
@@ -41,12 +53,10 @@ export class ValueSet<T> {
 	 */
 	has(value: T) {
 		if (typeof value === "object" && value !== null) {
-			// For objects and arrays, stringify them and check if the resulting string is in the set
 			return this.set.has(JSON.stringify(value))
-		} else {
-			// For non-object values, just check if they are in the set directly
-			return this.set.has(String(value))
 		}
+
+		return this.set.has(String(value))
 	}
 
 	/**
@@ -57,6 +67,13 @@ export class ValueSet<T> {
 	}
 
 	/**
+	 * Create a new set with the same values
+	 */
+	clone(): ValueSet<T> {
+		return new ValueSet(Array.from(this.values()))
+	}
+
+	/**
 	 * The number of values in the set
 	 */
 	get size() {
@@ -64,19 +81,26 @@ export class ValueSet<T> {
 	}
 
 	*[Symbol.iterator]() {
-		// Iterate over the parsed values of the JSON strings in the set
 		yield* this.values()
 	}
 
 	*values() {
 		for (const str of this.set) {
 			try {
-				// Attempt to parse the JSON string, and yield the resulting object or value
 				yield JSON.parse(str) as T
 			} catch {
-				// If parsing fails, just yield the string itself
 				yield str as unknown as T
 			}
+		}
+	}
+
+	/**
+	 * Iterate over the values in the set
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	forEach(callbackfn: (value: T, value2: T, set: ValueSet<T>) => void, thisArg?: any) {
+		for (const value of this.values()) {
+			callbackfn.call(thisArg, value, value, this)
 		}
 	}
 }

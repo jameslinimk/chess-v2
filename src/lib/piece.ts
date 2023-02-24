@@ -10,6 +10,7 @@ import {
 	type PieceAttribute,
 } from "./pieceAttributes.js"
 import { ct, loc, type Loc } from "./util.js"
+import { ValueSet } from "./valueSet.js"
 
 /**
  * The color of a piece, such as `White` or `Black`
@@ -99,6 +100,20 @@ export class Piece {
 	}
 
 	/**
+	 * Gets a human readable name of the piece
+	 */
+	get displayName(): string {
+		return {
+			[Name.Pawn]: "Pawn",
+			[Name.Knight]: "Knight",
+			[Name.Bishop]: "Bishop",
+			[Name.Rook]: "Rook",
+			[Name.Queen]: "Queen",
+			[Name.King]: "King",
+		}[this.name]
+	}
+
+	/**
 	 * Get a list of legal moves for the piece
 	 */
 	getMoves(board: Board): MoveData[] {
@@ -106,6 +121,16 @@ export class Piece {
 			attr.getMoves(acc, board, this)
 			return acc
 		}, [])
+	}
+
+	/**
+	 * Get a list of squares attacked by the piece
+	 */
+	getAttacks(board: Board): ValueSet<Loc> {
+		return this.attributes.reduce((acc, attr) => {
+			attr.getAttacks(acc, board, this)
+			return acc
+		}, new ValueSet<Loc>())
 	}
 
 	/**

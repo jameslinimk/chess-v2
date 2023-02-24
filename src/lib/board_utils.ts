@@ -72,5 +72,6 @@ export const fromFen = (fen: string): Board => {
 		}
 	}
 
+	board.update()
 	return board
 }

@@ -27,12 +27,38 @@ export class Loc {
 		return this.x === other.x && this.y === other.y
 	}
 
-	toHash(): number {
-		return this.x * 8 + this.y
+	/**
+	 * Converts `this` to a string
+	 */
+	toString(): string {
+		return `(${this.x}, ${this.y})`
 	}
 
-	static fromHash(hash: number): Loc {
-		return loc(hash % 8, Math.floor(hash / 8))
+	/**
+	 * Creates a loc from a string
+	 */
+	static fromString(str: string): Loc {
+		const [x, y] = str
+			.slice(1, -1)
+			.split(", ")
+			.map((n) => parseInt(n))
+		return loc(x, y)
+	}
+
+	/**
+	 * Converts `this` to a chess notation
+	 */
+	toNotation(): string {
+		return `${String.fromCharCode(this.x + 97)}${8 - this.y}`
+	}
+
+	/**
+	 * Creates a loc from a chess notation
+	 */
+	static fromNotation(notation: string): Loc {
+		const x = notation.charCodeAt(0) - 97
+		const y = 8 - parseInt(notation[1])
+		return loc(x, y)
 	}
 }
 
@@ -44,11 +70,7 @@ export const loc = (x: number, y: number): Loc => new Loc(x, y)
 /**
  * Shorthand for creating a loc given a chess notation
  */
-export const locA = (notation: string): Loc => {
-	const x = notation.charCodeAt(0) - 97
-	const y = 8 - parseInt(notation[1])
-	return loc(x, y)
-}
+export const locA = (notation: string): Loc => Loc.fromNotation(notation)
 
 /**
  * Color ternary operator, returns `white` if `color` is `Color.White`, otherwise returns `black`
@@ -56,6 +78,11 @@ export const locA = (notation: string): Loc => {
 export const ct = <T>(color: Color, white: T, black: T): T => (color === Color.White ? white : black)
 
 /**
- * Opposite color ternary operator, returns `white` if `color` is `Color.Black`, otherwise returns `black`
+ * Other color ternary operator, returns a color that isn't `color`
  */
-export const oc = (color: Color): Color => ct(color, Color.Black, Color.White)
+export const oc = (color: Color): Color => {
+	const colorValues = Object.values(Color) as Color[]
+	const index = colorValues.indexOf(color)
+	const i = (index + 1) % colorValues.length
+	return colorValues[i]
+}

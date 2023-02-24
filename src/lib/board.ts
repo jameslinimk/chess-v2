@@ -2,13 +2,21 @@ import { writable } from "svelte/store"
 import { fromFen, get, set, valid } from "./board_utils.js"
 import { Color, Piece } from "./piece.js"
 import type { Loc } from "./util.js"
+import { ValueSet } from "./valueSet.js"
 
 /**
  * Create a record with all colors as keys and `init` as values
  */
 const emptyColorInit = <T>(init: T): Record<Color, T> => {
+	const clone = () => {
+		if (ValueSet.isValueSet(init)) return init.clone()
+		if (typeof init === "object") return JSON.parse(JSON.stringify(init))
+
+		return init
+	}
+
 	return Object.keys(Color).reduce((acc, color) => {
-		acc[color as unknown as Color] = init
+		acc[color as unknown as Color] = clone()
 		return acc
 	}, {} as Record<Color, T>)
 }
@@ -72,6 +80,9 @@ export class MoveData implements MoveDataConfig {
 		return this.to ?? this.capture!.pos
 	}
 
+	/**
+	 * Gets the color of the piece that is moving
+	 */
 	get color() {
 		return this.piece.color
 	}
@@ -108,9 +119,9 @@ export class Board {
 	hash = 0
 
 	/**
-	 * Squares that are attacked by each color
+	 * Squares that are attacked by each color. Each key represents the color that **is being attacked**
 	 */
-	attacks: Record<Color, Set<Loc>> = emptyColorInit(new Set())
+	attacks: Record<Color, ValueSet<Loc>> = emptyColorInit(new ValueSet())
 	/**
 	 * Available moves for each color
 	 */
@@ -132,8 +143,8 @@ export class Board {
 	/**
 	 * Get a combined set of all sets in `record` except `color`
 	 */
-	other<T>(record: Record<Color, Set<T>>, color: Color): Set<T> {
-		const moves = new Set<T>()
+	other<T>(record: Record<Color, ValueSet<T>>, color: Color): ValueSet<T> {
+		const moves = new ValueSet<T>()
 		const colors = Object.keys(record) as unknown as Color[]
 		colors.forEach((col) => {
 			if (col === color) return
@@ -158,6 +169,28 @@ export class Board {
 		})
 
 		this.hash = hash
+	}
+
+	updateMoves() {
+		this.moves = emptyColorInit([])
+		this.raw.flat().forEach((piece) => {
+			if (piece === null) return
+			this.moves[piece.color].push(...piece.getMoves(this))
+		})
+	}
+
+	updateAttacks() {
+		this.attacks = emptyColorInit(new ValueSet())
+		this.raw.flat().forEach((piece) => {
+			if (piece === null) return
+			this.attacks[piece.color].addSet(piece.getAttacks(this))
+		})
+	}
+
+	update() {
+		this.updateHash()
+		this.updateMoves()
+		this.updateAttacks()
 	}
 
 	constructor(public width: number, public height: number, public players: number) {
@@ -204,4 +237,4 @@ export class Board {
 	static fromFen = fromFen
 }
 
-export const boardWritable = writable<Board | null>(null)
+export const board = writable<Board | null>(null)

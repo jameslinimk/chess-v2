@@ -1,10 +1,10 @@
-import { Board, boardWritable } from "./board.js"
+import { Board, board } from "./board.js"
 import type { Loc } from "./util.js"
 
 export class Game {
 	selectedPiece: Loc | null = null
 
 	constructor() {
-		boardWritable.set(Board.defaultBoard())
+		board.set(Board.defaultBoard())
 	}
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { boardWritable } from "./board.js"
+	import { board } from "./board.js"
 	import { configWritable } from "./config.js"
 	import { loc, type Loc } from "./util.js"
 	import { ValueSet } from "./valueSet.js"
@@ -7,23 +7,24 @@
 	export let squareSize = 50
 	const sqColor = (x: number, y: number) => ((x + y) % 2 === 0 ? "white" : "black")
 
-	let board: HTMLDivElement
+	let boardElm: HTMLDivElement
 	let boardOffset: [x: number, y: number] = [0, 0]
-	$: boardOffset = [board?.offsetLeft ?? 0, board?.offsetTop ?? 0]
+	$: if (boardElm) boardOffset = [boardElm.offsetLeft, boardElm.offsetTop]
 
 	let highlights = new ValueSet<Loc>()
-	let arrows = new ValueSet<[Loc, Loc]>()
+	let arrows: [Loc, Loc][] = []
 
 	let dragging: Loc | null = null
 	let draggingImg: string | null = null
 	$: if (dragging !== null) {
-		draggingImg = $boardWritable?.get(dragging)?.image ?? null
+		draggingImg = $board?.get(dragging)?.image ?? null
+		showMoves = dragging
 	}
 
 	let showMoves: Loc | null = null
-	let moves = new ValueSet<Loc>()
+	let moves: Loc[] = []
 	$: if (showMoves !== null) {
-		moves = new ValueSet($boardWritable?.pieceMoves(showMoves)?.map((m) => m.abTo) ?? [])
+		moves = $board?.pieceMoves(showMoves)?.map((m) => m.abTo) ?? []
 	}
 
 	let mousePos: [x: number, y: number] = [0, 0]
@@ -33,7 +34,7 @@
 	const onMouseDown = (event: MouseEvent, pos: Loc) => (dragging = pos)
 
 	const onClick = (event: MouseEvent, pos: Loc) => {
-		const piece = $boardWritable?.get(pos)
+		const piece = $board?.get(pos)
 		if (piece === null || piece === undefined) {
 			highlights = new ValueSet<Loc>()
 			return
@@ -51,28 +52,30 @@
 		highlights.add(pos)
 		highlights = highlights
 	}
+
+	const ptl = (v: number): number => v * squareSize + squareSize / 2
 </script>
 
 <svelte:body on:mousemove={onMousemove} />
 
-{#if $boardWritable}
+{#if $board}
 	<div
-		bind:this={board}
+		bind:this={boardElm}
 		on:mouseup={onMouseUp}
 		draggable="false"
 		on:dragstart={(e) => e.preventDefault()}
 		class="board"
 		style={`
 			--square-size: ${squareSize}px;
-			--raw-width: ${$boardWritable.width};
-			--raw-height: ${$boardWritable.height};
+			--raw-width: ${$board.width};
+			--raw-height: ${$board.height};
 			--white-color: ${$configWritable.white};
 			--black-color: ${$configWritable.black};
 			--white-highlight-color: ${$configWritable.whiteHighlight};
 			--black-highlight-color: ${$configWritable.blackHighlight};
 		`}
 	>
-		{#each $boardWritable.raw as row, y}
+		{#each $board.raw as row, y}
 			{#each row as cell, x}
 				<!-- svelte-ignore a11y-click-events-have-key-events -->
 				<div
@@ -87,14 +90,23 @@
 				/>
 			{/each}
 		{/each}
+
 		<svg class="arrows">
 			<defs>
 				<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
 					<polygon points="0 0, 10 3.5, 0 7" />
 				</marker>
 			</defs>
-			<line x1="0" y1="50" x2="250" y2="50" stroke="#000" stroke-width="8" marker-end="url(#arrowhead)" />
+
+			{#each arrows as [from, to]}
+				<line x1={ptl(from.x)} y1={ptl(from.y)} x2={ptl(to.x)} y2={ptl(to.y)} stroke="#000000" stroke-width="8" marker-end="url(#arrowhead)" />
+			{/each}
+
+			{#each moves as pos}
+				<circle cx={ptl(pos.x)} cy={ptl(pos.y)} r={squareSize / 4.5} class="moveHighlight" />
+			{/each}
 		</svg>
+
 		{#if dragging !== null && draggingImg !== null}
 			<div class="dragging" style="--piece-image: url({draggingImg}); --mouse-x: {mousePos[0]}px; --mouse-y: {mousePos[1]}px;" />
 		{/if}
@@ -132,6 +144,11 @@
 		height: $full-height;
 		top: 0px;
 		left: 0px;
+	}
+
+	.moveHighlight {
+		fill: black;
+		fill-opacity: 0.75;
 	}
 
 	@mixin square {
