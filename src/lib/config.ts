@@ -8,6 +8,8 @@ export class Config {
 	black = "#b58863"
 	whiteHighlight = "rgba(255, 255, 0, 0.5)"
 	blackHighlight = "rgba(255, 0, 0, 0.5)"
+	arrowPreview = "rgba(0, 0, 0, 0.5)"
+	arrow = "#000000"
 
 	/**
 	 * Saves the configuration to local storage
@@ -22,7 +24,16 @@ export class Config {
 	static load() {
 		const conf = JSON.parse(localStorage.getItem("config") || "null")
 		if (conf !== null) {
-			configWritable.set(conf)
+			const c = new Config()
+			for (const [key, value] of Object.entries(conf)) {
+				if (key in c) {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					;(c as any)[key] = value
+				}
+			}
+
+			c.save()
+			config.set(c)
 			return
 		}
 	}
@@ -31,4 +42,4 @@ export class Config {
 /**
  * The global configuration for the game
  */
-export const configWritable = writable(new Config())
+export const config = writable(new Config())

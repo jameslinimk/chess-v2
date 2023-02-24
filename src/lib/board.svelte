@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { board } from "./board.js"
-	import { configWritable } from "./config.js"
+	import { config } from "./config.js"
+	import { pullBack } from "./math.js"
 	import { loc, type Loc } from "./util.js"
-	import { ValueSet } from "./valueSet.js"
+	import { ValueSet } from "./ValueSet.js"
 
 	export let squareSize = 50
 	const sqColor = (x: number, y: number) => ((x + y) % 2 === 0 ? "white" : "black")
@@ -28,32 +29,102 @@
 	}
 
 	let mousePos: [x: number, y: number] = [0, 0]
-	const onMousemove = (event: MouseEvent) => (mousePos = [event.clientX - boardOffset[0], event.clientY - boardOffset[1]])
+	const onMousemove = (event: MouseEvent) => {
+		mousePos = [event.clientX - boardOffset[0], event.clientY - boardOffset[1]]
 
-	const onMouseUp = (event: MouseEvent) => (dragging = null)
-	const onMouseDown = (event: MouseEvent, pos: Loc) => (dragging = pos)
-
-	const onClick = (event: MouseEvent, pos: Loc) => {
-		const piece = $board?.get(pos)
-		if (piece === null || piece === undefined) {
-			highlights = new ValueSet<Loc>()
-			return
+		if (previewArrow !== null) {
+			previewArrow = [previewArrow[0], loc(ltp(mousePos[0]), ltp(mousePos[1]))]
 		}
 	}
 
-	const onContext = (event: MouseEvent, pos: Loc) => {
-		event.preventDefault()
-		if (highlights.has(pos)) {
-			highlights.delete(pos)
-			highlights = highlights
-			return
-		}
+	let arrowStart: Loc | null = null
+	let previewArrow: [Loc, Loc] | null = null
 
-		highlights.add(pos)
-		highlights = highlights
+	$: if (arrowStart) {
+		previewArrow = [arrowStart, loc(ltp(mousePos[0]), ltp(mousePos[1]))]
+	} else {
+		previewArrow = null
+	}
+
+	const onMouseUp = (event: MouseEvent) => {
+		switch (event.button) {
+			case 0: {
+				dragging = null
+				break
+			}
+			case 2: {
+				arrowStart = null
+				break
+			}
+		}
+	}
+
+	const onPieceMouseDown = (event: MouseEvent, pos: Loc) => {
+		switch (event.button) {
+			case 0: {
+				dragging = pos
+				highlights = new ValueSet<Loc>()
+				arrows = []
+				break
+			}
+			case 2: {
+				arrowStart = pos
+				break
+			}
+		}
+	}
+
+	const onPieceMouseUp = (event: MouseEvent, pos: Loc) => {
+		switch (event.button) {
+			case 2: {
+				if (arrowStart !== null) {
+					if (arrowStart.equals(pos)) {
+						arrowStart = null
+						if (highlights.has(pos)) {
+							highlights.delete(pos)
+							highlights = highlights
+							return
+						}
+
+						highlights.add(pos)
+						highlights = highlights
+						return
+					}
+
+					for (const [from, to] of arrows) {
+						if (from.equals(arrowStart) && to.equals(pos)) {
+							arrowStart = null
+							arrows = arrows.filter(([f, t]) => !(f.equals(from) && t.equals(to)))
+							return
+						}
+					}
+
+					arrows.push([arrowStart, pos])
+					arrows = arrows
+					arrowStart = null
+				}
+				break
+			}
+		}
+	}
+
+	const onPieceClick = (event: MouseEvent, pos: Loc) => {
+		switch (event.button) {
+			case 0: {
+				const piece = $board?.get(pos)
+				if (piece === null || piece === undefined) {
+					highlights = new ValueSet<Loc>()
+					break
+				}
+				break
+			}
+		}
 	}
 
 	const ptl = (v: number): number => v * squareSize + squareSize / 2
+	const ptll = (v: Loc): [x: number, y: number] => [ptl(v.x), ptl(v.y)]
+	const ltp = (v: number): number => Math.floor(v / squareSize)
+	const ltpl = (v: [x: number, y: number]): Loc => loc(ltp(v[0]), ltp(v[1]))
 </script>
 
 <svelte:body on:mousemove={onMousemove} />
@@ -64,15 +135,16 @@
 		on:mouseup={onMouseUp}
 		draggable="false"
 		on:dragstart={(e) => e.preventDefault()}
+		on:contextmenu={(e) => e.preventDefault()}
 		class="board"
 		style={`
 			--square-size: ${squareSize}px;
 			--raw-width: ${$board.width};
 			--raw-height: ${$board.height};
-			--white-color: ${$configWritable.white};
-			--black-color: ${$configWritable.black};
-			--white-highlight-color: ${$configWritable.whiteHighlight};
-			--black-highlight-color: ${$configWritable.blackHighlight};
+			--white-color: ${$config.white};
+			--black-color: ${$config.black};
+			--white-highlight-color: ${$config.whiteHighlight};
+			--black-highlight-color: ${$config.blackHighlight};
 		`}
 	>
 		{#each $board.raw as row, y}
@@ -84,23 +156,73 @@
 					class:pieceSquare={cell !== null}
 					class:semi={dragging?.x === x && dragging?.y === y}
 					style={cell !== null ? `--piece-image: url(${cell.image});` : ""}
-					on:click={(e) => onClick(e, loc(x, y))}
-					on:mousedown={(e) => onMouseDown(e, loc(x, y))}
-					on:contextmenu={(e) => onContext(e, loc(x, y))}
+					on:click={(e) => onPieceClick(e, loc(x, y))}
+					on:mousedown={(e) => onPieceMouseDown(e, loc(x, y))}
+					on:mouseup={(e) => onPieceMouseUp(e, loc(x, y))}
+					on:contextmenu={(e) => e.preventDefault()}
 				/>
 			{/each}
 		{/each}
 
 		<svg class="arrows">
 			<defs>
-				<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-					<polygon points="0 0, 10 3.5, 0 7" />
+				<marker
+					id="arrow"
+					viewBox="0 0 10 10"
+					refX="5"
+					refY="5"
+					markerWidth={squareSize / 10}
+					markerHeight={squareSize / 16}
+					orient="auto-start-reverse"
+				>
+					<path d="M 0 0 L 10 5 L 0 10 z" fill={$config.arrow} />
+				</marker>
+				<marker
+					id="arrowPreview"
+					viewBox="0 0 10 10"
+					refX="5"
+					refY="5"
+					markerWidth={squareSize / 10}
+					markerHeight={squareSize / 16}
+					orient="auto-start-reverse"
+				>
+					<path d="M 0 0 L 10 5 L 0 10 z" fill={$config.arrowPreview} />
 				</marker>
 			</defs>
 
 			{#each arrows as [from, to]}
-				<line x1={ptl(from.x)} y1={ptl(from.y)} x2={ptl(to.x)} y2={ptl(to.y)} stroke="#000000" stroke-width="8" marker-end="url(#arrowhead)" />
+				<line
+					{...(() => {
+						const [f, t] = pullBack(ptll(from), ptll(to), squareSize / 2)
+						return {
+							x1: f[0],
+							y1: f[1],
+							x2: t[0],
+							y2: t[1],
+						}
+					})()}
+					stroke={$config.arrow}
+					stroke-width="8"
+					marker-end="url(#arrow)"
+				/>
 			{/each}
+
+			{#if previewArrow !== null && !previewArrow[0].equals(previewArrow[1])}
+				<line
+					{...(() => {
+						const [from, to] = pullBack(ptll(previewArrow[0]), ptll(previewArrow[1]), squareSize / 2)
+						return {
+							x1: from[0],
+							y1: from[1],
+							x2: to[0],
+							y2: to[1],
+						}
+					})()}
+					stroke={$config.arrowPreview}
+					stroke-width="8"
+					marker-end="url(#arrowPreview)"
+				/>
+			{/if}
 
 			{#each moves as pos}
 				<circle cx={ptl(pos.x)} cy={ptl(pos.y)} r={squareSize / 4.5} class="moveHighlight" />

@@ -1,8 +1,8 @@
 import { writable } from "svelte/store"
+import { ValueSet } from "./ValueSet.js"
 import { fromFen, get, set, valid } from "./board_utils.js"
 import { Color, Piece } from "./piece.js"
 import type { Loc } from "./util.js"
-import { ValueSet } from "./valueSet.js"
 
 /**
  * Create a record with all colors as keys and `init` as values
