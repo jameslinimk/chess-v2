@@ -1,10 +1,16 @@
-import { Board, board } from "./board.js"
-import type { Loc } from "./util.js"
+import { writable } from "svelte/store"
+import { Board } from "./board.js"
 
 export class Game {
-	selectedPiece: Loc | null = null
+	board = Board.defaultBoard()
 
-	constructor() {
-		board.set(Board.defaultBoard())
+	get moving() {
+		return true
+	}
+
+	get active() {
+		return true
 	}
 }
+
+export const game = writable(new Game())

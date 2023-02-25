@@ -1,4 +1,3 @@
-import { writable } from "svelte/store"
 import { ValueSet } from "./ValueSet.js"
 import { fromFen, get, set, valid } from "./board_utils.js"
 import { Color, Piece } from "./piece.js"
@@ -193,6 +192,10 @@ export class Board {
 		this.updateAttacks()
 	}
 
+	move(from: Loc, move: MoveData) {
+		throw new Error("todo")
+	}
+
 	constructor(public width: number, public height: number, public players: number) {
 		this.raw = Array.from(Array(width), () => Array.from(Array(height), () => null))
 	}
@@ -236,5 +239,3 @@ export class Board {
 	 */
 	static fromFen = fromFen
 }
-
-export const board = writable<Board | null>(null)
