@@ -21,6 +21,20 @@ export class Loc {
 	}
 
 	/**
+	 * CLamps `this` between `min` and `max`
+	 */
+	clamp(min: Loc, max: Loc): Loc {
+		return loc(Math.max(min.x, Math.min(this.x, max.x)), Math.max(min.y, Math.min(this.y, max.y)))
+	}
+
+	/**
+	 * Clamps `this` between `(0, 0)` and `max`
+	 */
+	maxClamp(max: Loc): Loc {
+		return this.clamp(loc(0, 0), max)
+	}
+
+	/**
 	 * Returns true if `this` is equal to `other`
 	 */
 	equals(other: Loc): boolean {

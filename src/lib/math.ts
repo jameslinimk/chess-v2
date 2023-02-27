@@ -12,9 +12,14 @@ export const project = (p: [number, number], radians: number, distance: number):
 ]
 
 /**
- * Pulls back the `head` to the `tail` by `distance`
+ * Pulls back the `head` to the `tail` by `distance` and `tail` to `head` by `reverseDistance`
  */
-export const pullBack = (tail: [number, number], head: [number, number], distance: number): [[number, number], [number, number]] => {
+export const moveArrowHeads = (
+	tail: [number, number],
+	head: [number, number],
+	distance: number,
+	reverseDistance: number
+): [[number, number], [number, number]] => {
 	const r = radians(tail, head)
-	return [tail, project(head, r, -distance)]
+	return [project(tail, r, reverseDistance), project(head, r, -distance)]
 }

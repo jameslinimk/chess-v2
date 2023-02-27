@@ -1,7 +1,7 @@
-import { ValueSet } from "./ValueSet.js"
 import { fromFen, get, set, valid } from "./board_utils.js"
 import { Color, Piece } from "./piece.js"
 import type { Loc } from "./util.js"
+import { ValueSet } from "./valueSet.js"
 
 /**
  * Create a record with all colors as keys and `init` as values
@@ -72,6 +72,14 @@ export class MoveData implements MoveDataConfig {
 	}
 
 	/**
+	 * Play the sound for this move
+	 */
+	playSound() {
+		const audio = document.getElementById(this.capture ? "captureSound" : "moveSound") as HTMLAudioElement
+		if (audio) audio.play()
+	}
+
+	/**
 	 * Gets the location that the piece is moving to
 	 */
 	get abTo() {
@@ -106,7 +114,7 @@ export class Board {
 	/**
 	 * The hash's of the previous positions that have been played
 	 */
-	hashHistory: number[] = []
+	hashHistory = new Map<number, number>()
 	/**
 	 * The number of half moves since the last capture or pawn move
 	 */
@@ -129,15 +137,6 @@ export class Board {
 	 * Castle rights for each color, in the form `[kingSide, queenSide]`
 	 */
 	castleRights: Record<Color, [boolean, boolean]> = emptyColorInit([true, true])
-
-	/**
-	 * Gets all legal moves for a piece
-	 */
-	pieceMoves(piece: Loc): MoveData[] {
-		const p = this.get(piece)
-		if (p === null) return []
-		return this.moves[p.color].filter((m) => m.piece.pos === piece)
-	}
 
 	/**
 	 * Get a combined set of all sets in `record` except `color`
@@ -192,8 +191,17 @@ export class Board {
 		this.updateAttacks()
 	}
 
+	/**
+	 * Gets all legal moves for a piece
+	 */
+	pieceMoves(piece: Loc): MoveData[] {
+		const p = this.get(piece)
+		if (p === null) return []
+		return this.moves[p.color].filter((m) => m.piece.pos.equals(piece))
+	}
+
 	move(from: Loc, move: MoveData) {
-		throw new Error("todo")
+		console.log("move", from.toString(), move)
 	}
 
 	constructor(public width: number, public height: number, public players: number) {
