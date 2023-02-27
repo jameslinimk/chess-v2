@@ -1,7 +1,7 @@
-import { MoveData, type Board } from "./board.js"
-import type { Name, Piece } from "./piece.js"
-import type { Loc } from "./util.js"
-import type { ValueSet } from "./valueSet.js"
+import { MoveData, type Board } from "./board"
+import type { Name, Piece } from "./piece"
+import type { Loc } from "./util"
+import type { ValueSet } from "./valueSet"
 
 /**
  * Key is the priority of which the attribute will be applied

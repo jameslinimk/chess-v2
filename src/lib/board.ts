@@ -1,7 +1,7 @@
-import { fromFen, get, set, valid } from "./board_utils.js"
-import { Color, Piece } from "./piece.js"
-import type { Loc } from "./util.js"
-import { ValueSet } from "./valueSet.js"
+import { fromFen, get, set, valid } from "./board_utils"
+import { Color, Piece } from "./piece"
+import type { Loc } from "./util"
+import { ValueSet } from "./valueSet"
 
 /**
  * Create a record with all colors as keys and `init` as values
@@ -106,7 +106,7 @@ export class Board {
 	/**
 	 * The current player to move
 	 */
-	currentMove = Color.White
+	turn = Color.White
 	/**
 	 * The previous moves that have been played
 	 */

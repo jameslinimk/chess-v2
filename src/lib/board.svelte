@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { MoveData } from "./board.js"
-	import { config } from "./config.js"
-	import { game } from "./game.js"
-	import { moveArrowHeads } from "./math.js"
-	import { loc, type Loc } from "./util.js"
-	import { ValueSet } from "./valueSet.js"
+	import type { MoveData } from "./board"
+	import { config } from "./config"
+	import { game } from "./game"
+	import { moveArrowHeads } from "./math"
+	import { loc, type Loc } from "./util"
+	import { ValueSet } from "./valueSet"
 
 	let squareSize = 50
 	const sqColor = (x: number, y: number) => ((x + y) % 2 === 0 ? "white" : "black")
@@ -43,6 +43,13 @@
 	$: {
 		if (showMoves !== null) moves = $game.board.pieceMoves(showMoves) ?? []
 		else moves = []
+	}
+
+	let showPreviewMoves: Loc | null = null
+	let previewMoves: MoveData[] = []
+	$: {
+		if (showPreviewMoves !== null) previewMoves = $game.board.pieceMoves(showPreviewMoves) ?? []
+		else previewMoves = []
 	}
 
 	let selected: Loc | null = null
@@ -249,6 +256,10 @@
 		{#each moves?.map((m) => m.abTo) ?? [] as pos}
 			<circle cx={ptl(pos.x)} cy={ptl(pos.y)} r={squareSize / 5} class="moveHighlight" />
 		{/each}
+
+		{#each previewMoves?.map((m) => m.abTo) ?? [] as pos}
+			<circle cx={ptl(pos.x)} cy={ptl(pos.y)} r={squareSize / 5} class="previewMoveHighlight" />
+		{/each}
 	</svg>
 
 	{#if dragging !== null && draggingImg !== null}
@@ -296,6 +307,11 @@
 	.moveHighlight {
 		fill: black;
 		fill-opacity: 0.5;
+	}
+
+	.previewMoveHighlight {
+		fill: red;
+		fill-opacity: 0.25;
 	}
 
 	@mixin square {

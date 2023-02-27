@@ -1,15 +1,14 @@
 import { writable } from "svelte/store"
-import { Board } from "./board.js"
+import { Board } from "./board"
+import { Color } from "./piece.js"
 
 export class Game {
+	color = Color.White
+	active = true
 	board = Board.defaultBoard()
 
 	get moving() {
-		return true
-	}
-
-	get active() {
-		return true
+		return this.board.turn === this.color
 	}
 }
 

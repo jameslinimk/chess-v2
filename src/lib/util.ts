@@ -1,4 +1,4 @@
-import { Color } from "./piece.js"
+import { Color } from "./piece"
 
 /**
  * A location on the board

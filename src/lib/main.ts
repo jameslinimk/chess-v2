@@ -1,5 +1,5 @@
-import { Config } from "./config.js"
-import { Game } from "./game.js"
+import { Config } from "./config"
+import { Game } from "./game"
 
 export const main = () => {
 	Config.load()

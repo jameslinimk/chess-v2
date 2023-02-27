@@ -1,6 +1,6 @@
-import { Board, MoveData } from "./board.js"
-import { Color, Piece } from "./piece.js"
-import { Loc, loc, locA, oc } from "./util.js"
+import { Board, MoveData } from "./board"
+import { Color, Piece } from "./piece"
+import { Loc, loc, locA, oc } from "./util"
 
 export function get(this: Board, loc: Loc): Piece | null {
 	if (!this.valid(loc)) return null
@@ -34,7 +34,7 @@ export const fromFen = (fen: string): Board => {
 	})
 
 	// Set turn
-	board.currentMove = turn === "w" ? Color.White : Color.Black
+	board.turn = turn === "w" ? Color.White : Color.Black
 
 	// Set castle rights
 	if (castle.includes("K")) board.castleRights[Color.White][0] = true
@@ -47,7 +47,7 @@ export const fromFen = (fen: string): Board => {
 
 	// Set full move
 	let fullMoves = parseInt(fullMove) * 2
-	if (board.currentMove === Color.Black) fullMoves--
+	if (board.turn === Color.Black) fullMoves--
 	for (let i = 0; i < fullMoves; i++) {
 		board.moveHistory.push(
 			new MoveData({
@@ -60,9 +60,9 @@ export const fromFen = (fen: string): Board => {
 	// Set en passant
 	if (enPassant !== "-") {
 		const targetSquare = locA(enPassant)
-		targetSquare.y += board.currentMove === Color.White ? -1 : 1
+		targetSquare.y += board.turn === Color.White ? -1 : 1
 		const newMove = new MoveData({
-			piece: Piece.newPawn(oc(board.currentMove), targetSquare),
+			piece: Piece.newPawn(oc(board.turn), targetSquare),
 			to: targetSquare,
 		})
 		if (board.moveHistory.length === 0) {

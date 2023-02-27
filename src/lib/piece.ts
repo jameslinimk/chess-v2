@@ -1,4 +1,4 @@
-import type { Board, MoveData } from "./board.js"
+import type { Board, MoveData } from "./board"
 import {
 	Capture,
 	EnPassant,
@@ -8,9 +8,9 @@ import {
 	direction_expander,
 	direction_expander_ea,
 	type PieceAttribute,
-} from "./pieceAttributes.js"
-import { ct, loc, type Loc } from "./util.js"
-import { ValueSet } from "./valueSet.js"
+} from "./pieceAttributes"
+import { ct, loc, type Loc } from "./util"
+import { ValueSet } from "./valueSet"
 
 /**
  * The color of a piece, such as `White` or `Black`
