@@ -14,11 +14,11 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^1.0.3",
-		"@sveltejs/kit": "^1.8.5",
+		"@sveltejs/kit": "^1.8.8",
 		"@types/bcrypt": "^5.0.0",
 		"@types/uuid": "^9.0.1",
-		"@typescript-eslint/eslint-plugin": "^5.53.0",
-		"@typescript-eslint/parser": "^5.53.0",
+		"@typescript-eslint/eslint-plugin": "^5.54.0",
+		"@typescript-eslint/parser": "^5.54.0",
 		"eslint": "^8.35.0",
 		"eslint-config-prettier": "^8.6.0",
 		"eslint-plugin-svelte3": "^4.0.0",
@@ -35,8 +35,8 @@
 	"dependencies": {
 		"bcrypt": "^5.1.0",
 		"better-sqlite3": "^8.1.0",
-		"quick.db": "^9.0.8",
-		"uuid": "^9.0.0"
+		"crypto": "^1.0.1",
+		"quick.db": "^9.0.8"
 	},
 	"type": "module"
 }

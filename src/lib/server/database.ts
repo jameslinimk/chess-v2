@@ -1,18 +1,35 @@
 import type { MoveData } from "$lib/board.js"
 import type { Color } from "$lib/piece.js"
 import { hash } from "bcrypt"
-import { v4 } from "uuid"
+import { randomUUID } from "crypto"
+import { QuickDB } from "quick.db"
 
 export class Game {
-	constructor(public players: Partial<Record<Color, PlayerID>>, public winner: Color, public moves: MoveData[], public time: number) {}
+	constructor(public players: Partial<Record<Color, string>>, public winner: Color, public moves: MoveData[], public time: number) {}
 }
 
-export type PlayerID = string
 export class Player {
-	constructor(public id: PlayerID, public username: string, public hash: string, public games: Game[]) {}
+	constructor(public authToken: string, public username: string, public hash: string, public games: Game[], public createdAt: number) {}
 
 	static new = async (username: string, password: string): Promise<Player> => {
 		const passHash = await hash(password, 7)
-		return new Player(v4(), username, passHash, [])
+		return new Player(randomUUID(), username, passHash, [], Date.now())
+	}
+}
+
+export class Database {
+	private static db = new QuickDB()
+
+	static getPlayers = async (): Promise<Record<string, Player>> => {
+		const users: Record<string, Player> = (await this.db.get("users")) ?? {}
+		return users
+	}
+
+	static getPlayer = async (username: string): Promise<Player | null> => {
+		return (await this.db.get(`users.${username}`)) ?? null
+	}
+
+	static setPlayer = async (player: Player): Promise<void> => {
+		await this.db.set(`users.${player.username}`, player)
 	}
 }

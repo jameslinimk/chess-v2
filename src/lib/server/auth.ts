@@ -1,16 +1,17 @@
 import { compare } from "bcrypt"
 import { QuickDB } from "quick.db"
-import { Player } from "./database.js"
+import { Database, Player } from "./database.js"
 
-const db = new QuickDB()
+export const db = new QuickDB()
 
-enum Error {
-	UsernameTaken,
-	UsernameInvalid,
-	UsernameTooLong,
-	PasswordTooShort,
-	NoAccount,
-	InvalidPassword,
+export enum Error {
+	UsernameTaken = "UsernameTaken",
+	UsernameInvalid = "UsernameInvalid",
+	UsernameTooLong = "UsernameTooLong",
+	PasswordTooShort = "PasswordTooShort",
+	NoAccount = "NoAccount",
+	InvalidPassword = "InvalidPassword",
+	BadRequest = "BadRequest",
 }
 
 type Response<T> = [Error | null, T | null]
@@ -22,13 +23,14 @@ export const register = async (username: string, password: string): Promise<Resp
 	if (await db.has(`users.${username}`)) return [Error.UsernameTaken, null]
 
 	const player = await Player.new(username, password)
-	db.set(`users.${username}`, player)
+	Database.setPlayer(player)
+
 	return [null, player]
 }
 
 export const login = async (username: string, password: string): Promise<Response<Player>> => {
-	const player: Player | null = await db.get(`users.${username}`)
-	if (player === null) return [Error.NoAccount, null]
+	const player = await Database.getPlayer(username)
+	if (!player) return [Error.NoAccount, null]
 
 	if (!(await compare(password, player.hash))) return [Error.InvalidPassword, null]
 	return [null, player]
