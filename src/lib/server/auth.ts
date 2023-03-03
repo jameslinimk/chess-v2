@@ -20,7 +20,7 @@ export const register = async (username: string, password: string): Promise<Resp
 	if (username.length > 32) return [Error.UsernameTooLong, null]
 	if (username.length < 3) return [Error.UsernameInvalid, null]
 	if (password.length < 8) return [Error.PasswordTooShort, null]
-	if (await db.has(`users.${username}`)) return [Error.UsernameTaken, null]
+	if (await Database.hasPlayer(username)) return [Error.UsernameTaken, null]
 
 	const player = await Player.new(username, password)
 	Database.setPlayer(player)

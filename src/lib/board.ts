@@ -83,7 +83,6 @@ export class MoveData implements MoveDataConfig {
 	 * Gets the location that the piece is moving to
 	 */
 	get abTo() {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return this.to ?? this.capture!.pos
 	}
 

@@ -9,9 +9,9 @@ export const load: PageServerLoad = async (params) => {
 	if (!username || !password) throw error(400, Error.BadRequest)
 
 	const [err, player] = await login(username, password)
-
 	if (err) throw error(400, err)
 
+	params.cookies.set("authToken", player!.authToken)
 	return {
 		success: true,
 		player: player,

@@ -11,7 +11,7 @@ export class Game {
 export class Player {
 	constructor(public authToken: string, public username: string, public hash: string, public games: Game[], public createdAt: number) {}
 
-	static new = async (username: string, password: string): Promise<Player> => {
+	static async new(username: string, password: string): Promise<Player> {
 		const passHash = await hash(password, 7)
 		return new Player(randomUUID(), username, passHash, [], Date.now())
 	}
@@ -20,16 +20,20 @@ export class Player {
 export class Database {
 	private static db = new QuickDB()
 
-	static getPlayers = async (): Promise<Record<string, Player>> => {
+	static async getPlayers(): Promise<Record<string, Player>> {
 		const users: Record<string, Player> = (await this.db.get("users")) ?? {}
 		return users
 	}
 
-	static getPlayer = async (username: string): Promise<Player | null> => {
+	static async getPlayer(username: string): Promise<Player | null> {
 		return (await this.db.get(`users.${username}`)) ?? null
 	}
 
-	static setPlayer = async (player: Player): Promise<void> => {
+	static async setPlayer(player: Player): Promise<void> {
 		await this.db.set(`users.${player.username}`, player)
+	}
+
+	static async hasPlayer(username: string): Promise<boolean> {
+		return await this.db.has(`users.${username}`)
 	}
 }
