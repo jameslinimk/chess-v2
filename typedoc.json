@@ -3,5 +3,5 @@
 		"./src/lib/*.ts",
 	],
 	"out": "./static/docs",
-	"readme": "./docIndex.md"
+	"readme": "./READMEDOC.md"
 }

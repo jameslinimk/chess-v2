@@ -1,19 +1,30 @@
-import { Error, login } from "$lib/server/auth.js"
-import { error } from "@sveltejs/kit"
-import type { PageServerLoad } from "./$types"
+import { db } from "$lib/server/database"
+import { fail, redirect } from "@sveltejs/kit"
+import { hash } from "bcrypt"
+import { randomUUID } from "crypto"
+import type { Actions } from "./$types"
 
-export const load: PageServerLoad = async (params) => {
-	const username = params.url.searchParams.get("username")
-	const password = params.url.searchParams.get("password")
+export const actions: Actions = {
+	register: async ({ request }) => {
+		const data = await request.formData()
+		const username = data.get("username")
+		const password = data.get("password")
 
-	if (!username || !password) throw error(400, Error.BadRequest)
+		if (typeof username !== "string" || typeof password !== "string" || !username || !password) {
+			return fail(400, { invalid: true })
+		}
 
-	const [err, player] = await login(username, password)
+		const user = await db.user.findUnique({ where: { username } })
+		if (user) return fail(400, { user: true })
 
-	if (err) throw error(400, err)
+		await db.user.create({
+			data: {
+				username,
+				passwordHash: await hash(password, 10),
+				authToken: randomUUID(),
+			},
+		})
 
-	return {
-		success: true,
-		player: player,
-	}
+		throw redirect(303, "/login")
+	},
 }
