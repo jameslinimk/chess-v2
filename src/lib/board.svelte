@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { MoveData } from "./board"
+	import type { MoveData } from "./chess/board"
+	import { loc, type Loc } from "./chess/util"
 	import { config } from "./config"
 	import { game } from "./game"
 	import { moveArrowHeads } from "./math"
-	import { loc, type Loc } from "./util"
 	import { ValueSet } from "./valueSet"
 
 	let squareSize = 50

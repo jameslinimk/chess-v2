@@ -14,6 +14,11 @@ export const actions: Actions = {
 			return fail(400, { invalid: true })
 		}
 
+		// Minimum eight characters, at least one letter, one number and one special character
+		if (/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/.test(password) === false) {
+			return fail(400, { password: true })
+		}
+
 		const user = await db.user.findUnique({ where: { username } })
 		if (user) return fail(400, { user: true })
 
