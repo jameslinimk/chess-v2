@@ -1,3 +1,4 @@
+import { ValueSet } from "../valueSet"
 import type { Board, MoveData } from "./board"
 import {
 	Capture,
@@ -10,7 +11,6 @@ import {
 	type PieceAttribute,
 } from "./pieceAttributes"
 import { ct, loc, type Loc } from "./util"
-import { ValueSet } from "./valueSet"
 
 /**
  * The color of a piece, such as `White` or `Black`

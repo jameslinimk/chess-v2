@@ -1,7 +1,7 @@
+import type { ValueSet } from "../valueSet"
 import { MoveData, type Board } from "./board"
 import type { Name, Piece } from "./piece"
 import type { Loc } from "./util"
-import type { ValueSet } from "./valueSet"
 
 /**
  * Key is the priority of which the attribute will be applied

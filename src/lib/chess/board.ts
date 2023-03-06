@@ -1,7 +1,7 @@
+import { ValueSet } from "../valueSet"
 import { fromFen, get, set, valid } from "./board_utils"
 import { Color, Piece } from "./piece"
 import type { Loc } from "./util"
-import { ValueSet } from "./valueSet"
 
 /**
  * Create a record with all colors as keys and `init` as values

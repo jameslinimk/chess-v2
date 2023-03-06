@@ -6,10 +6,11 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = "file:./data.db"
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
+/// A chess user
 model User {
     id           String @id @default(uuid())
     username     String @unique
@@ -22,12 +23,16 @@ model User {
     games Game[]
 }
 
+/// A chess game
 model Game {
     id      String @id @default(uuid())
+    /// Goes in order of White, Black, Green, Red, Yellow. Will have at least 2 players
     players User[]
+    /// The index of the player who won the game. -1 if the game is a draw
     winner  Int
 
     pgn    String
+    /// The ending FEN of the game
     endFen String
 
     startedAt DateTime

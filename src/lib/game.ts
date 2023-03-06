@@ -1,6 +1,6 @@
 import { writable } from "svelte/store"
-import { Board } from "./board"
-import { Color } from "./piece.js"
+import { Board } from "./chess/board"
+import { Color } from "./chess/piece"
 
 export class Game {
 	color = Color.White
