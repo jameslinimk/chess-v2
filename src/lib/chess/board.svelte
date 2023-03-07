@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { MoveData } from "./chess/board"
-	import { loc, type Loc } from "./chess/util"
-	import { config } from "./config"
-	import { game } from "./game"
-	import { moveArrowHeads } from "./math"
-	import { ValueSet } from "./valueSet"
+	import { config } from "../config"
+	import { game } from "../game"
+	import { moveArrowHeads } from "../util/math"
+	import { ValueSet } from "../util/valueSet"
+	import type { MoveData } from "./board"
+	import { loc, type Loc } from "./util"
 
 	let squareSize = 50
 	const sqColor = (x: number, y: number) => ((x + y) % 2 === 0 ? "white" : "black")

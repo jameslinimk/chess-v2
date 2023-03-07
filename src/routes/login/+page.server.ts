@@ -21,7 +21,7 @@ export const actions: Actions = {
 		const userPassword = await compare(password, user.passwordHash)
 		if (!userPassword) return fail(400, { credentials: true })
 
-		// generate new auth token just in case
+		// Generate new auth token
 		const authenticatedUser = await db.user.update({
 			where: { username: user.username },
 			data: { authToken: randomUUID() },

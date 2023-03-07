@@ -1,4 +1,4 @@
-import { ValueSet } from "../valueSet"
+import { ValueSet } from "../util/valueSet"
 import { fromFen, get, set, valid } from "./board_utils"
 import { Color, Piece } from "./piece"
 import type { Loc } from "./util"

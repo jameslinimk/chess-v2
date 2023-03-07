@@ -1,7 +1,8 @@
 import { redirect } from "@sveltejs/kit"
 import type { Actions, PageServerLoad } from "./$types"
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ cookies }) => {
+	cookies.delete("session")
 	throw redirect(302, "/")
 }
 

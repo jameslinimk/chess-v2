@@ -1,4 +1,4 @@
-import { ValueSet } from "../valueSet"
+import { ValueSet } from "../util/valueSet"
 import type { Board, MoveData } from "./board"
 import {
 	Capture,

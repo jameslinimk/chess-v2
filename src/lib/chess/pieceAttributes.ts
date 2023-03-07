@@ -1,4 +1,4 @@
-import type { ValueSet } from "../valueSet"
+import type { ValueSet } from "../util/valueSet"
 import { MoveData, type Board } from "./board"
 import type { Name, Piece } from "./piece"
 import type { Loc } from "./util"
