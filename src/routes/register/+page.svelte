@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from "$app/forms"
+	import { tags } from "$lib/meta.js"
+	import { MetaTags } from "svelte-meta-tags"
 	import type { ActionData } from "./$types"
 
 	export let form: ActionData
@@ -15,6 +17,8 @@
 		}
 	}
 </script>
+
+<MetaTags {...tags("Register", "ChessV2 is TODO", "")} />
 
 <h1>Register</h1>
 

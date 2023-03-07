@@ -1,13 +1,7 @@
 import { dev } from "$app/environment"
 import { get } from "svelte/store"
 import { Config } from "./config"
-import { Game, game } from "./game"
-
-declare global {
-	interface Window {
-		game: Game
-	}
-}
+import { game } from "./game"
 
 export const main = () => {
 	Config.load()

@@ -13,6 +13,8 @@ declare global {
 		}
 		// interface Platform {}
 	}
-}
 
-export {}
+	interface Window {
+		game: Game
+	}
+}
