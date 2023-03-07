@@ -1,3 +1,4 @@
+import { dev } from "$app/environment"
 import { db } from "$lib/server/database"
 import { fail, redirect } from "@sveltejs/kit"
 import { compare } from "bcrypt"
@@ -30,7 +31,7 @@ export const actions: Actions = {
 			path: "/",
 			httpOnly: true,
 			sameSite: "strict",
-			secure: process.env.NODE_ENV === "production",
+			secure: !dev,
 			// 1 month
 			maxAge: 60 * 60 * 24 * 30,
 		})

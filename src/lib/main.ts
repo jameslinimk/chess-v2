@@ -1,10 +1,15 @@
+import { dev } from "$app/environment"
+import { get } from "svelte/store"
 import { Config } from "./config"
-import { Game } from "./game"
+import { Game, game } from "./game"
+
+declare global {
+	interface Window {
+		game: Game
+	}
+}
 
 export const main = () => {
 	Config.load()
-	const game = new Game()
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	;(window as any).game = game
+	if (!dev && !window.game) window.game = get(game)
 }
