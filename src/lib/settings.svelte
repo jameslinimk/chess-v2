@@ -20,6 +20,14 @@
 			value: "test",
 		},
 	]
+
+	$: {
+		settings.forEach((setting) => {
+			if (setting.type === "color") {
+				$config[setting.name] = setting.value
+			}
+		})
+	}
 </script>
 
 {#each settings as setting, i}
