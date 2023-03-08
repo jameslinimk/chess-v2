@@ -1,3 +1,4 @@
+import { browser } from "$app/environment"
 import { writable } from "svelte/store"
 
 /**
@@ -17,7 +18,7 @@ export class Config {
 	 * Saves the configuration to local storage
 	 */
 	save() {
-		localStorage.setItem("config", JSON.stringify(this))
+		if (browser) localStorage.setItem("config", JSON.stringify(this))
 	}
 
 	/**
