@@ -5,7 +5,8 @@
 		"ltpl",
 		"ptll",
 		"READMEDOC",
-		"rnbqkbnr"
+		"rnbqkbnr",
+		"supabase"
 	],
 	"files.exclude": {
 		"**/.git": true,
