@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from "$app/forms"
-	import { tags } from "$lib/meta.js"
+	import { tags } from "$lib/meta"
 	import { MetaTags } from "svelte-meta-tags"
 	import type { ActionData } from "./$types"
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ColorPicker from "svelte-awesome-color-picker"
-	import { config } from "./config.js"
+	import { config } from "./config"
 
 	interface Setting {
 		type: "color" | "text"
