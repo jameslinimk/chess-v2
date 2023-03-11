@@ -3,10 +3,12 @@
 	"cSpell.words": [
 		"atks",
 		"ltpl",
+		"nsfwjs",
 		"ptll",
 		"READMEDOC",
 		"rnbqkbnr",
-		"supabase"
+		"supabase",
+		"tfjs"
 	],
 	"files.exclude": {
 		"**/.git": true,
