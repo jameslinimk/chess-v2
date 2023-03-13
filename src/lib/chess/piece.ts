@@ -66,7 +66,7 @@ export class Piece {
 	 * Path to the image of the piece (svg)
 	 */
 	get image(): string {
-		return `./pieces/standard/${pieceSymbols[this.name]}${ct(this.color, "w", "b")}.svg`
+		return `/pieces/standard/${pieceSymbols[this.name]}${ct(this.color, "w", "b")}.svg`
 	}
 
 	/**

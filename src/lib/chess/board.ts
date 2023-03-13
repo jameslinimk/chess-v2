@@ -1,24 +1,7 @@
 import { ValueSet } from "../util/valueSet"
 import { fromFen, get, set, valid } from "./board_utils"
 import { Color, Piece } from "./piece"
-import type { Loc } from "./util"
-
-/**
- * Create a record with all colors as keys and `init` as values
- */
-const emptyColorInit = <T>(init: T): Record<Color, T> => {
-	const clone = () => {
-		if (ValueSet.isValueSet(init)) return init.clone()
-		if (typeof init === "object") return JSON.parse(JSON.stringify(init))
-
-		return init
-	}
-
-	return Object.keys(Color).reduce((acc, color) => {
-		acc[color as unknown as Color] = clone()
-		return acc
-	}, {} as Record<Color, T>)
-}
+import { ct, type Loc } from "./util"
 
 interface MoveDataConfig {
 	piece: Piece
@@ -125,30 +108,31 @@ export class Board {
 	hash = 0
 
 	/**
-	 * Squares that are attacked by each color. Each key represents the color that **is being attacked**
+	 * Squares that are attacked by white
 	 */
-	attacks: Record<Color, ValueSet<Loc>> = emptyColorInit(new ValueSet())
+	whiteAttacks = new ValueSet<Loc>()
 	/**
-	 * Available moves for each color
+	 * Squares that are attacked by black
 	 */
-	moves: Record<Color, MoveData[]> = emptyColorInit([])
-	/**
-	 * Castle rights for each color, in the form `[kingSide, queenSide]`
-	 */
-	castleRights: Record<Color, [boolean, boolean]> = emptyColorInit([true, true])
+	blackAttacks = new ValueSet<Loc>()
 
 	/**
-	 * Get a combined set of all sets in `record` except `color`
+	 * Available moves for white
 	 */
-	other<T>(record: Record<Color, ValueSet<T>>, color: Color): ValueSet<T> {
-		const moves = new ValueSet<T>()
-		const colors = Object.keys(record) as unknown as Color[]
-		colors.forEach((col) => {
-			if (col === color) return
-			for (const move of record[col]) moves.add(move)
-		})
-		return moves
-	}
+	whiteMoves: MoveData[] = []
+	/**
+	 * Available moves for black
+	 */
+	blackMoves: MoveData[] = []
+
+	/**
+	 * Castle rights for white, in the form `[kingSide, queenSide]`
+	 */
+	whiteCastle: [boolean, boolean] = [true, true]
+	/**
+	 * Castle rights for white, in the form `[kingSide, queenSide]`
+	 */
+	blackCastle: [boolean, boolean] = [true, true]
 
 	/**
 	 * Sets `this.hash` to the hash of the current position
@@ -169,18 +153,24 @@ export class Board {
 	}
 
 	updateMoves() {
-		this.moves = emptyColorInit([])
+		this.whiteMoves = []
+		this.blackMoves = []
+
 		this.raw.flat().forEach((piece) => {
 			if (piece === null) return
-			this.moves[piece.color].push(...piece.getMoves(this))
+			const moves = ct(piece.color, this.whiteMoves, this.blackMoves)
+			moves.push(...piece.getMoves(this))
 		})
 	}
 
 	updateAttacks() {
-		this.attacks = emptyColorInit(new ValueSet())
+		this.whiteAttacks.clear()
+		this.blackAttacks.clear()
+
 		this.raw.flat().forEach((piece) => {
 			if (piece === null) return
-			this.attacks[piece.color].addSet(piece.getAttacks(this))
+			const attacks = ct(piece.color, this.whiteAttacks, this.blackAttacks)
+			attacks.addSet(piece.getAttacks(this))
 		})
 	}
 
@@ -196,7 +186,8 @@ export class Board {
 	pieceMoves(piece: Loc): MoveData[] {
 		const p = this.get(piece)
 		if (p === null) return []
-		return this.moves[p.color].filter((m) => m.piece.pos.equals(piece))
+		const moves = ct(p.color, this.whiteMoves, this.blackMoves)
+		return moves.filter((m) => m.piece.pos.equals(piece))
 	}
 
 	move(from: Loc, move: MoveData) {
