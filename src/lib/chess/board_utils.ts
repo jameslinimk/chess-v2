@@ -37,10 +37,10 @@ export const fromFen = (fen: string): Board => {
 	board.turn = turn === "w" ? Color.White : Color.Black
 
 	// Set castle rights
-	if (castle.includes("K")) board.castleRights[Color.White][0] = true
-	if (castle.includes("Q")) board.castleRights[Color.White][1] = true
-	if (castle.includes("k")) board.castleRights[Color.Black][0] = true
-	if (castle.includes("q")) board.castleRights[Color.Black][1] = true
+	if (castle.includes("K")) board.whiteCastle[0] = true
+	if (castle.includes("Q")) board.whiteCastle[1] = true
+	if (castle.includes("k")) board.blackCastle[0] = true
+	if (castle.includes("q")) board.blackCastle[1] = true
 
 	// Set half move
 	board.halfMoveClock = parseInt(halfMove)

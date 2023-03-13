@@ -9,6 +9,5 @@ const dirs = (source) =>
 /** @type {import("typedoc").TypeDocOptions} */
 module.exports = {
 	entryPoints: dirs("src/lib").map((dir) => `./src/lib/${dir}/*.ts`),
-	out: "./static/docs",
-	readme: "./READMEDOC.md",
+	out: "./docs",
 }

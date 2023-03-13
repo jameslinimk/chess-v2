@@ -3,6 +3,7 @@ import { node, type Tensor3D } from "@tensorflow/tfjs-node"
 import { randomUUID } from "crypto"
 import { writeFile } from "fs/promises"
 import { load } from "nsfwjs"
+import type { NSFW_CLASSES } from "nsfwjs/dist/nsfw_classes.js"
 import type { Actions } from "./$types"
 import { avatarMaxSize, imageTypes, threshold } from "./config"
 
@@ -28,18 +29,22 @@ export const actions: Actions = {
 		const aBuffer = await image.arrayBuffer()
 
 		const img = node.decodeImage(new Uint8Array(aBuffer), 3) as Tensor3D
-		const preds = await model.classify(img)
+		const preds = (await model.classify(img)).reduce((acc, cur) => {
+			acc[cur.className] = cur.probability
+			return acc
+		}, {} as Record<(typeof NSFW_CLASSES)[keyof typeof NSFW_CLASSES], number>)
 		img.dispose()
 
-		if (preds.some((p) => ["Hentai", "Porn"].includes(p.className) && p.probability > threshold)) {
+		if (Math.max(preds.Hentai, preds.Porn) > threshold) {
 			return fail(400, { nsfw: true })
 		}
 
 		const suffix = image.type.replace("image/", ".")
 		const uuid = randomUUID()
+		const fullUuid = uuid + suffix
 
 		await Promise.all([
-			writeFile(`./static/avatars/${uuid}${suffix}`, Buffer.from(aBuffer)),
+			writeFile(`./static/avatars/${fullUuid}`, Buffer.from(aBuffer)),
 			writeFile(
 				`./static/avatars/${uuid}.info.json`,
 				JSON.stringify({
@@ -51,6 +56,6 @@ export const actions: Actions = {
 			),
 		])
 
-		return { path: uuid + suffix }
+		return { path: fullUuid }
 	},
 }

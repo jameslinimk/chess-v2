@@ -1,7 +1,7 @@
 import type { ValueSet } from "../util/valueSet"
 import { MoveData, type Board } from "./board"
 import type { Name, Piece } from "./piece"
-import type { Loc } from "./util"
+import { ct, type Loc } from "./util"
 
 /**
  * Key is the priority of which the attribute will be applied
@@ -181,8 +181,9 @@ export const direction_expander_ea = <T>(kind: new (...args: any[]) => T, direct
 export class Protected implements PieceAttribute {
 	kind = Attribute.Protected
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
+		const other = ct(piece.color, board.blackAttacks, board.whiteAttacks)
 		return moves.filter((move) => {
-			if (board.other(board.attacks, piece.color).has(move.abTo)) return false
+			if (other.has(move.abTo)) return false
 			return true
 		})
 	}
