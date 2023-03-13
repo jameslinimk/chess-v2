@@ -12,8 +12,7 @@ datasource db {
 
 /// A chess user
 model User {
-    id           String @id @default(uuid())
-    username     String @unique
+    username     String @id
     avatar       String @default("default.png")
     passwordHash String
     authToken    String @unique
@@ -21,18 +20,25 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    games Game[]
+    whiteGames Game[] @relation("white")
+    blackGames Game[] @relation("black")
 }
 
 /// A chess game
 model Game {
-    id      String @id @default(uuid())
-    /// Goes in order of white, black, green, red, then yellow. Will have at least 2 players
-    players User[]
-    /// The index of the player who won the game. -1 if the game is a draw
-    winner  Int
+    id String @id @default(uuid())
 
-    pgn    String
+    white   User   @relation(fields: [whiteId], references: [username], name: "white")
+    whiteId String
+
+    black   User   @relation(fields: [blackId], references: [username], name: "black")
+    blackId String
+
+    /// 0 for draw, 1 for white and 2 for black
+    winner Int
+
+    /// Type: `MoveData[]`
+    data   Json
     /// The ending FEN of the game
     endFen String
 

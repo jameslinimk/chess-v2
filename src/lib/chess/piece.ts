@@ -18,15 +18,7 @@ import { ct, loc, type Loc } from "./util"
 export enum Color {
 	White,
 	Black,
-	Green,
-	Red,
-	Yellow,
 }
-
-/**
- * The default order of the turns of the colors
- */
-export const ColorOrder = [Color.White, Color.Black, Color.Green, Color.Red, Color.Yellow]
 
 /**
  * Name of the a piece, such as `Pawn`, `Rook`, `Knight`, `Bishop`, `Queen`, or `King`
@@ -74,15 +66,7 @@ export class Piece {
 	 * Path to the image of the piece (svg)
 	 */
 	get image(): string {
-		const colorPrefix = {
-			[Color.White]: "w",
-			[Color.Black]: "b",
-			[Color.Green]: "g",
-			[Color.Red]: "r",
-			[Color.Yellow]: "y",
-		}
-
-		return `./pieces/standard/${pieceSymbols[this.name]}${colorPrefix[this.color]}.svg`
+		return `./pieces/standard/${pieceSymbols[this.name]}${ct(this.color, "w", "b")}.svg`
 	}
 
 	/**
