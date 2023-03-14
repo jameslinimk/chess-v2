@@ -1,8 +1,8 @@
-import { Board, MoveData } from "./board"
+import { Board, MoveData, WALL, type RawType } from "./board"
 import { Color, Piece } from "./piece"
 import { Loc, loc, locA, oc } from "./util"
 
-export function get(this: Board, loc: Loc): Piece | null {
+export function get(this: Board, loc: Loc): RawType {
 	if (!this.valid(loc)) return null
 	return this.raw[loc.y][loc.x]
 }
@@ -12,7 +12,7 @@ export function set(this: Board, loc: Loc, piece: Piece | null) {
 }
 
 export function valid(this: Board, loc: Loc): boolean {
-	return loc.x >= 0 && loc.x < this.width && loc.y >= 0 && loc.y < this.height
+	return loc.x >= 0 && loc.x < this.width && loc.y >= 0 && loc.y < this.height && this.get(loc) !== WALL
 }
 
 export const fromFen = (fen: string): Board => {

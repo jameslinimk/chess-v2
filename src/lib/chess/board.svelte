@@ -80,7 +80,7 @@
 		const move = moves.find((m) => m.abTo.equals(pos))
 		if (move !== undefined) {
 			move.playSound()
-			$game.board.move(start, move)
+			$game.board.move(move)
 			return
 		}
 	}

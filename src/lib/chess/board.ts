@@ -1,6 +1,6 @@
 import { ValueSet } from "../util/valueSet"
 import { fromFen, get, set, valid } from "./board_utils"
-import { Color, Piece } from "./piece"
+import { Color, Name, Piece } from "./piece"
 import { ct, type Loc } from "./util"
 
 interface MoveDataConfig {
@@ -77,6 +77,9 @@ export class MoveData implements MoveDataConfig {
 	}
 }
 
+export const WALL = 123
+export type RawType = Piece | typeof WALL | null
+
 /**
  * A class representing a chess board
  */
@@ -84,7 +87,7 @@ export class Board {
 	/**
 	 * The raw board data, with the pieces or null
 	 */
-	raw: (Piece | null)[][]
+	raw: RawType[][]
 	/**
 	 * The current player to move
 	 */
@@ -144,7 +147,7 @@ export class Board {
 		let hash = 0
 		this.raw.forEach((row) => {
 			row.forEach((pi) => {
-				const piece = pi?.name ?? 0
+				const piece = pi === WALL ? WALL : pi === null ? 0 : pi.name
 				hash = (hash * p + piece) % m
 			})
 		})
@@ -157,7 +160,7 @@ export class Board {
 		this.blackMoves = []
 
 		this.raw.flat().forEach((piece) => {
-			if (piece === null) return
+			if (piece === null || piece === WALL) return
 			const moves = ct(piece.color, this.whiteMoves, this.blackMoves)
 			moves.push(...piece.getMoves(this))
 		})
@@ -168,7 +171,7 @@ export class Board {
 		this.blackAttacks.clear()
 
 		this.raw.flat().forEach((piece) => {
-			if (piece === null) return
+			if (piece === null || piece === WALL) return
 			const attacks = ct(piece.color, this.whiteAttacks, this.blackAttacks)
 			attacks.addSet(piece.getAttacks(this))
 		})
@@ -185,13 +188,40 @@ export class Board {
 	 */
 	pieceMoves(piece: Loc): MoveData[] {
 		const p = this.get(piece)
-		if (p === null) return []
+		if (p === null || p === WALL) return []
 		const moves = ct(p.color, this.whiteMoves, this.blackMoves)
 		return moves.filter((m) => m.piece.pos.equals(piece))
 	}
 
-	move(from: Loc, move: MoveData) {
-		console.log("move", from.toString(), move)
+	move(move: MoveData) {
+		this.moveHistory.push(move)
+		if (move.capture) {
+			this.halfMoveClock = 0
+		}
+
+		this.set(move.piece.pos, null)
+		this.set(move.abTo, move.piece)
+
+		if (move.enPassant) {
+			if (!move.capture) throw new Error("En passant move must capture")
+			this.set(move.capture.pos, null)
+		}
+
+		switch (move.piece.name) {
+			case Name.Pawn:
+				this.halfMoveClock = 0
+				this.hashHistory.clear()
+				break
+		}
+
+		this.update()
+
+		const v = this.hashHistory.get(this.hash) ?? 0
+		this.hashHistory.set(this.hash, v + 1)
+
+		if (this.hashHistory.get(this.hash) === 3) {
+			throw new Error("Threefold repetition")
+		}
 	}
 
 	constructor(public width: number, public height: number, public players: number) {
