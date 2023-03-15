@@ -1,5 +1,5 @@
 import { ValueSet } from "../util/valueSet"
-import { fromFen, get, set, valid } from "./board_utils"
+import { fromFen, get, isWall, set, valid } from "./board_utils"
 import { Color, Name, Piece } from "./piece"
 import { ct, type Loc } from "./util"
 
@@ -32,7 +32,7 @@ export class MoveData implements MoveDataConfig {
 	 */
 	castle?: "king" | "queen"
 	/**
-	 * Whether this move is an en passant capture
+	 * Whether this move is an en passant capture. If true, `this.capture` will be the pawn being captured
 	 */
 	enPassant?: boolean
 	/**
@@ -262,6 +262,10 @@ export class Board {
 	 * Check if a location is valid (on the board)
 	 */
 	valid = valid
+	/**
+	 * Check if a location is a wall
+	 */
+	isWall = isWall
 	/**
 	 * Creates a board from a FEN string
 	 */

@@ -3,7 +3,7 @@
 	import { game } from "../game"
 	import { moveArrowHeads } from "../util/math"
 	import { ValueSet } from "../util/valueSet"
-	import type { MoveData } from "./board"
+	import { WALL, type MoveData } from "./board"
 	import { loc, type Loc } from "./util"
 
 	let squareSize = 50
@@ -31,7 +31,10 @@
 
 	let dragging: Loc | null = null
 	let draggingImg: string | null = null
-	$: if (dragging !== null) draggingImg = $game.board.get(dragging)?.image ?? null
+	$: if (dragging !== null) {
+		const piece = $game.board.get(dragging)
+		draggingImg = piece === WALL ? null : piece?.image ?? null
+	}
 
 	let showMoves: Loc | null = null
 	$: {
@@ -193,7 +196,7 @@
 				class:highlight={highlights.has(loc(x, y))}
 				class:pieceSquare={cell !== null}
 				class:semi={showMoves?.equals(loc(x, y))}
-				style={cell !== null ? `--piece-image: url(${cell.image});` : ""}
+				style={cell !== null && cell !== WALL ? `--piece-image: url(${cell.image});` : ""}
 				on:mousedown={(e) => onPieceMouseDown(e, loc(x, y))}
 				on:mouseup={(e) => onPieceMouseUp(e, loc(x, y))}
 				on:click={(e) => onPieceClick(e, loc(x, y))}

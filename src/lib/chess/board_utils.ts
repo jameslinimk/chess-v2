@@ -12,7 +12,11 @@ export function set(this: Board, loc: Loc, piece: Piece | null) {
 }
 
 export function valid(this: Board, loc: Loc): boolean {
-	return loc.x >= 0 && loc.x < this.width && loc.y >= 0 && loc.y < this.height && this.get(loc) !== WALL
+	return loc.x >= 0 && loc.x < this.width && loc.y >= 0 && loc.y < this.height
+}
+
+export function isWall(this: Board, loc: Loc): boolean {
+	return this.get(loc) === WALL
 }
 
 export const fromFen = (fen: string): Board => {

@@ -1,5 +1,5 @@
 import type { ValueSet } from "../util/valueSet"
-import { MoveData, type Board } from "./board"
+import { MoveData, WALL, type Board } from "./board"
 import type { Name, Piece } from "./piece"
 import { ct, type Loc } from "./util"
 
@@ -40,6 +40,10 @@ export enum Attribute {
 	 */
 	EnPassant = 4,
 	/**
+	 * TODO
+	 */
+	Castle = 5,
+	/**
 	 * Protected pieces cannot move into a square attacked by an enemy piece
 	 *
 	 * IE: The King
@@ -54,10 +58,10 @@ export class Sliding implements PieceAttribute {
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
 		const pos = piece.pos
 		for (;;) {
-			if (!board.valid(pos)) break
+			if (!board.valid(pos) || board.isWall(pos)) break
 
 			const enemy = board.get(pos)
-			if (enemy !== null) {
+			if (enemy !== null && enemy !== WALL) {
 				if (enemy.color === piece.color) break
 				else {
 					moves.push(new MoveData({ piece, capture: enemy }))
@@ -84,10 +88,10 @@ export class Jumping implements PieceAttribute {
 
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
 		const pos = piece.pos.add(this.direction)
-		if (!board.valid(pos)) return moves
+		if (!board.valid(pos) || board.isWall(pos)) return moves
 
 		const enemy = board.get(pos)
-		if (enemy !== null) {
+		if (enemy !== null && enemy !== WALL) {
 			if (enemy.color === piece.color) return moves
 			else {
 				moves.push(new MoveData({ piece, capture: enemy }))
@@ -110,10 +114,10 @@ export class Capture implements PieceAttribute {
 
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
 		const pos = piece.pos.add(this.direction)
-		if (!board.valid(pos)) return moves
+		if (!board.valid(pos) || board.isWall(pos)) return moves
 
 		const enemy = board.get(pos)
-		if (enemy === null || enemy.color === piece.color) return moves
+		if (enemy === null || enemy === WALL || enemy.color === piece.color) return moves
 
 		moves.push(new MoveData({ piece, capture: enemy }))
 		return moves
@@ -190,6 +194,19 @@ export class Protected implements PieceAttribute {
 
 	getAttacks(attacks: ValueSet<Loc>): ValueSet<Loc> {
 		return attacks
+	}
+}
+
+export class Castle implements PieceAttribute {
+	kind = Attribute.Castle
+	constructor(public startingPos: Loc, public rook: Name, public rookPos: Loc) {}
+
+	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
+		throw new Error("Not implemented")
+	}
+
+	getAttacks(attacks: ValueSet<Loc>): ValueSet<Loc> {
+		throw new Error("Not implemented")
 	}
 }
 

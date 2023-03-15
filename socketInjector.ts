@@ -1,16 +1,9 @@
-// socketIoHandler.js
-import { Server } from "socket.io"
+import type { PluginOption } from "vite"
+import { injectSIO } from "./src/lib/server/socket"
 
-export const injectSIO = (server) => {
-	const io = new Server(server)
-
-	io.on("connection", (socket) => {
-		console.log("SocketIO connected")
-
-		socket.on("disconnect", () => {
-			console.log("SocketIO disconnected")
-		})
-	})
-
-	console.log("SocketIO injected")
+export const viteInjector: PluginOption = {
+	name: "socket.io injector",
+	configureServer(server) {
+		injectSIO(server.httpServer!)
+	},
 }

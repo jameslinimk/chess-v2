@@ -87,16 +87,11 @@ export const loc = (x: number, y: number): Loc => new Loc(x, y)
 export const locA = (notation: string): Loc => Loc.fromNotation(notation)
 
 /**
- * Color ternary operator, returns `white` if `color` is `Color.White`, otherwise returns `black`
+ * Color ternary operator, returns `Color.White` if `color` is `Color.White`, otherwise returns `Color.Black`
  */
 export const ct = <T>(color: Color, white: T, black: T): T => (color === Color.White ? white : black)
 
 /**
- * Other color ternary operator, returns a color that isn't `color`
+ * Other color ternary operator, returns `Color.Black` if `color` is `Color.White`, otherwise returns `Color.White`
  */
-export const oc = (color: Color): Color => {
-	const colorValues = Object.values(Color) as Color[]
-	const index = colorValues.indexOf(color)
-	const i = (index + 1) % colorValues.length
-	return colorValues[i]
-}
+export const oc = (color: Color): Color => ct(color, Color.Black, Color.White)

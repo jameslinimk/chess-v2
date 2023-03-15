@@ -3,7 +3,7 @@ import { node, type Tensor3D } from "@tensorflow/tfjs-node"
 import { randomUUID } from "crypto"
 import { writeFile } from "fs/promises"
 import { load } from "nsfwjs"
-import type { NSFW_CLASSES } from "nsfwjs/dist/nsfw_classes.js"
+import type { NSFW_CLASSES } from "nsfwjs/dist/nsfw_classes"
 import type { Actions } from "./$types"
 import { avatarMaxSize, imageTypes, threshold } from "./config"
 
