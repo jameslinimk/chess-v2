@@ -199,10 +199,12 @@ export class Protected implements PieceAttribute {
 
 export class Castle implements PieceAttribute {
 	kind = Attribute.Castle
-	constructor(public startingPos: Loc, public rook: Name, public rookPos: Loc) {}
 
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
-		throw new Error("Not implemented")
+		const [kingSide, queenSide] = ct(piece.color, board.whiteCastle, board.blackCastle)
+		if (!kingSide && !queenSide) return moves
+
+		return moves
 	}
 
 	getAttacks(attacks: ValueSet<Loc>): ValueSet<Loc> {
