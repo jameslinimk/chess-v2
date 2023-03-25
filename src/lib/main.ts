@@ -1,7 +1,7 @@
 import { dev } from "$app/environment"
+import { Config } from "$lib/config"
+import { game } from "$lib/game"
 import { get } from "svelte/store"
-import { Config } from "./config"
-import { game } from "./game"
 
 export const main = () => {
 	Config.load()

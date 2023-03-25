@@ -33,10 +33,7 @@
 		;($config as any)[setting.name] = setting.value
 
 		if (saveCallback) clearTimeout(saveCallback)
-		saveCallback = setTimeout(() => {
-			$config.save()
-			console.log("save")
-		}, 500)
+		saveCallback = setTimeout(() => $config.save(), 500)
 	})
 </script>
 

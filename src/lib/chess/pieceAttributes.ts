@@ -1,7 +1,7 @@
-import type { ValueSet } from "../util/valueSet"
-import { MoveData, WALL, type Board } from "./board"
-import type { Name, Piece } from "./piece"
-import { ct, type Loc } from "./util"
+import { MoveData, WALL, type Board } from "$lib/chess/board"
+import type { Name, Piece } from "$lib/chess/piece"
+import { ct, loc, type Loc } from "$lib/chess/util"
+import type { ValueSet } from "$lib/util/valueSet"
 
 /**
  * Key is the priority of which the attribute will be applied
@@ -40,7 +40,7 @@ export enum Attribute {
 	 */
 	EnPassant = 4,
 	/**
-	 * TODO
+	 * Castling will move the king 2 squares in either direction and move the piece in the corner to the other side of the king
 	 */
 	Castle = 5,
 	/**
@@ -185,9 +185,9 @@ export const direction_expander_ea = <T>(kind: new (...args: any[]) => T, direct
 export class Protected implements PieceAttribute {
 	kind = Attribute.Protected
 	getMoves(moves: MoveData[], board: Board, piece: Piece): MoveData[] {
-		const other = ct(piece.color, board.blackAttacks, board.whiteAttacks)
+		const attacks = ct(piece.color, board.blackAttacks, board.whiteAttacks)
 		return moves.filter((move) => {
-			if (other.has(move.abTo)) return false
+			if (attacks.has(move.abTo)) return false
 			return true
 		})
 	}
@@ -204,11 +204,24 @@ export class Castle implements PieceAttribute {
 		const [kingSide, queenSide] = ct(piece.color, board.whiteCastle, board.blackCastle)
 		if (!kingSide && !queenSide) return moves
 
+		const dirs = []
+		if (kingSide) dirs.push(1)
+		if (queenSide) dirs.push(-1)
+
+		dirs.forEach((dir) => {
+			for (let i = 1; i <= 2; i++) {
+				const attacks = ct(piece.color, board.whiteAttacks, board.blackAttacks)
+				if (attacks.has(piece.pos.add(loc(dir * i, 0)))) return
+			}
+
+			moves.push(new MoveData({ piece, to: piece.pos.add(loc(dir * 2, 0)) }))
+		})
+
 		return moves
 	}
 
 	getAttacks(attacks: ValueSet<Loc>): ValueSet<Loc> {
-		throw new Error("Not implemented")
+		return attacks
 	}
 }
 

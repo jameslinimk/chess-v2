@@ -26,7 +26,7 @@ export class ValueSet<T> {
 		if (typeof value === "object" && value !== null) {
 			this.set.add(JSON.stringify(value))
 		} else {
-			this.set.add(String(value))
+			this.set.add(`${value}`)
 		}
 	}
 
@@ -45,7 +45,7 @@ export class ValueSet<T> {
 			return this.set.delete(JSON.stringify(value))
 		}
 
-		return this.set.delete(String(value))
+		return this.set.delete(`${value}`)
 	}
 
 	/**
@@ -56,7 +56,7 @@ export class ValueSet<T> {
 			return this.set.has(JSON.stringify(value))
 		}
 
-		return this.set.has(String(value))
+		return this.set.has(`${value}`)
 	}
 
 	/**
@@ -69,7 +69,7 @@ export class ValueSet<T> {
 	/**
 	 * Create a new set with the same values
 	 */
-	clone(): ValueSet<T> {
+	clone() {
 		return new ValueSet(Array.from(this.values()))
 	}
 
@@ -89,7 +89,7 @@ export class ValueSet<T> {
 			try {
 				yield JSON.parse(str) as T
 			} catch {
-				yield str as unknown as T
+				yield str as T
 			}
 		}
 	}
@@ -97,7 +97,6 @@ export class ValueSet<T> {
 	/**
 	 * Iterate over the values in the set
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	forEach(callbackfn: (value: T, value2: T, set: ValueSet<T>) => void, thisArg?: any) {
 		for (const value of this.values()) {
 			callbackfn.call(thisArg, value, value, this)

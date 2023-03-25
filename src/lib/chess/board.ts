@@ -1,7 +1,8 @@
-import { ValueSet } from "../util/valueSet"
-import { fromFen, get, isWall, set, valid } from "./board_utils"
-import { Color, Name, Piece } from "./piece"
-import { ct, type Loc } from "./util"
+import { fromFen, fromJson, get, isWall, print, set, toJson, valid } from "$lib/chess/board_utils"
+import { Color, Name, Piece } from "$lib/chess/piece"
+import { ct, loc, type Loc } from "$lib/chess/util"
+import { game } from "$lib/game.js"
+import { ValueSet } from "$lib/util/valueSet"
 
 interface MoveDataConfig {
 	piece: Piece
@@ -80,6 +81,15 @@ export class MoveData implements MoveDataConfig {
 export const WALL = 123
 export type RawType = Piece | typeof WALL | null
 
+export enum GameState {
+	Ongoing,
+	WhiteWin,
+	BlackWin,
+	Draw,
+	Threefold,
+	Stalemate,
+}
+
 /**
  * A class representing a chess board
  */
@@ -138,6 +148,11 @@ export class Board {
 	blackCastle: [boolean, boolean] = [true, true]
 
 	/**
+	 * The current game state
+	 */
+	state = GameState.Ongoing
+
+	/**
 	 * Sets `this.hash` to the hash of the current position
 	 */
 	updateHash() {
@@ -193,35 +208,70 @@ export class Board {
 		return moves.filter((m) => m.piece.pos.equals(piece))
 	}
 
+	rawMove(from: Loc, to: Loc) {
+		const piece = this.get(from)
+		this.set(from, null)
+		this.set(to, piece)
+	}
+
 	move(move: MoveData) {
+		const printLog = false
+		const log = (...args: any) => {
+			if (printLog) console.log(...args)
+		}
+
+		log("Move", move)
+
+		// Updating data
 		this.moveHistory.push(move)
 		if (move.capture) {
+			log("Updated halfMoveClock")
 			this.halfMoveClock = 0
 		}
 
+		// Doing the move
 		this.set(move.piece.pos, null)
 		this.set(move.abTo, move.piece)
 
+		// Special captures or moves
 		if (move.enPassant) {
+			log("En passant")
+
 			if (!move.capture) throw new Error("En passant move must capture")
 			this.set(move.capture.pos, null)
+		} else if (move.castle) {
+			log("Castle")
+
+			const y = ct(move.piece.color, 0, this.height - 1)
+			const x = move.castle === "king" ? this.width - 1 : 0
+			const dir = move.castle === "king" ? -1 : 1
+
+			this.rawMove(loc(x, y), loc(x + dir, y))
 		}
 
+		// Special cases per piece
 		switch (move.piece.name) {
 			case Name.Pawn:
+				log("Special pawn move")
+
 				this.halfMoveClock = 0
 				this.hashHistory.clear()
 				break
 		}
 
+		// General update of things, ie updating the hash, moves, attacks, etc...
 		this.update()
 
+		// Threefold
 		const v = this.hashHistory.get(this.hash) ?? 0
 		this.hashHistory.set(this.hash, v + 1)
 
-		if (this.hashHistory.get(this.hash) === 3) {
-			throw new Error("Threefold repetition")
+		if (v + 1 >= 3) {
+			log("Threefold")
+			this.state = GameState.Threefold
 		}
+
+		game.update((v) => v)
 	}
 
 	constructor(public width: number, public height: number, public players: number) {
@@ -231,7 +281,7 @@ export class Board {
 	/**
 	 * Create a new board with the default starting position
 	 */
-	static defaultBoard(): Board {
+	static defaultBoard() {
 		return Board.fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	}
 
@@ -245,7 +295,7 @@ export class Board {
 	/**
 	 * The last move that was played, or null if no moves have been played
 	 */
-	get lastMove(): MoveData | null {
+	get lastMove() {
 		if (this.moveHistory.length === 0) return null
 		return this.moveHistory[this.moveHistory.length - 1]
 	}
@@ -270,4 +320,16 @@ export class Board {
 	 * Creates a board from a FEN string
 	 */
 	static fromFen = fromFen
+	/**
+	 * Returns the board as a JSON object
+	 */
+	toJson = toJson
+	/**
+	 * Creates a board from a JSON object
+	 */
+	static fromJson = fromJson
+	/**
+	 * Pretty prints the board to the console
+	 */
+	print = print
 }

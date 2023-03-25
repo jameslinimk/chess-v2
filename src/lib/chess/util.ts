@@ -1,4 +1,4 @@
-import { Color } from "./piece"
+import { Color } from "$lib/chess/piece"
 
 /**
  * A location on the board
@@ -44,7 +44,7 @@ export class Loc {
 	/**
 	 * Converts `this` to a string
 	 */
-	toString(): string {
+	toString() {
 		return `(${this.x}, ${this.y})`
 	}
 
@@ -62,7 +62,7 @@ export class Loc {
 	/**
 	 * Converts `this` to a chess notation
 	 */
-	toNotation(): string {
+	toNotation() {
 		return `${String.fromCharCode(this.x + 97)}${8 - this.y}`
 	}
 

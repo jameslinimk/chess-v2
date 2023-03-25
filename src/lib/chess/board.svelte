@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { config } from "../config"
-	import { game } from "../game"
-	import { moveArrowHeads } from "../util/math"
-	import { ValueSet } from "../util/valueSet"
-	import { WALL, type MoveData } from "./board"
-	import { loc, type Loc } from "./util"
+	import { WALL, type MoveData } from "$lib/chess/board"
+	import { loc, type Loc } from "$lib/chess/util"
+	import { config } from "$lib/config"
+	import { game } from "$lib/game"
+	import { moveArrowHeads } from "$lib/util/math"
+	import { ValueSet } from "$lib/util/valueSet"
 
 	let squareSize = 50
 	const sqColor = (x: number, y: number) => ((x + y) % 2 === 0 ? "white" : "black")
@@ -79,9 +79,13 @@
 		}
 	}
 
-	const findMove = (start: Loc, pos: Loc) => {
+	const findMove = (pos: Loc) => {
+		console.log("Find move")
+
 		const move = moves.find((m) => m.abTo.equals(pos))
 		if (move !== undefined) {
+			console.log("Found move", move)
+
 			move.playSound()
 			$game.board.move(move)
 			return
@@ -92,7 +96,7 @@
 		switch (event.button) {
 			case 0: {
 				if (selected === null) return
-				findMove(selected, pos)
+				findMove(pos)
 				break
 			}
 		}
@@ -112,7 +116,7 @@
 						return
 					}
 
-					findMove(dragging, pos)
+					findMove(pos)
 				}
 				break
 			}
@@ -169,7 +173,14 @@
 	const ltpl = (v: [x: number, y: number]): Loc => loc(ltp(v[0]), ltp(v[1]))
 </script>
 
-<svelte:body on:mousemove={onMousemove} />
+<svelte:body
+	on:mousemove={onMousemove}
+	on:keypress={(event) => {
+		if (event.key === "f") {
+			console.log($game.board.print())
+		}
+	}}
+/>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div

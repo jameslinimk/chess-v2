@@ -1,22 +1,42 @@
-import { Board, MoveData, WALL, type RawType } from "./board"
-import { Color, Piece } from "./piece"
-import { Loc, loc, locA, oc } from "./util"
+import { Board, MoveData, WALL, type RawType } from "$lib/chess/board"
+import { Color, Piece } from "$lib/chess/piece"
+import { Loc, loc, locA, oc } from "$lib/chess/util"
+import chalk from "chalk"
 
-export function get(this: Board, loc: Loc): RawType {
+export function get(this: Board, loc: Loc) {
 	if (!this.valid(loc)) return null
 	return this.raw[loc.y][loc.x]
 }
 
-export function set(this: Board, loc: Loc, piece: Piece | null) {
+export function set(this: Board, loc: Loc, piece: RawType) {
 	this.raw[loc.y][loc.x] = piece
 }
 
-export function valid(this: Board, loc: Loc): boolean {
+export function valid(this: Board, loc: Loc) {
 	return loc.x >= 0 && loc.x < this.width && loc.y >= 0 && loc.y < this.height
 }
 
-export function isWall(this: Board, loc: Loc): boolean {
+export function isWall(this: Board, loc: Loc) {
 	return this.get(loc) === WALL
+}
+
+export function print(this: Board) {
+	const print: string[] = []
+	this.raw.forEach((row, y) => {
+		const printRow: string[] = []
+		row.forEach((cell, x) => {
+			const color = (x + y) % 2 === 0 ? chalk.bgWhite : chalk.bgBlack
+			if (cell === null) {
+				printRow.push(color(" "))
+			} else if (cell === WALL) {
+				printRow.push(color("X"))
+			} else {
+				printRow.push(color(cell.symbol))
+			}
+		})
+		print.push(printRow.join(""))
+	})
+	console.log(print.join("\n"))
 }
 
 export const fromFen = (fen: string): Board => {
@@ -77,5 +97,15 @@ export const fromFen = (fen: string): Board => {
 	}
 
 	board.update()
+	return board
+}
+
+export function toJson(this: Board): string {
+	return JSON.stringify(this.raw)
+}
+
+export function fromJson(json: string): Board {
+	const board: Board = JSON.parse(json)
+	Object.setPrototypeOf(board, Board.prototype)
 	return board
 }

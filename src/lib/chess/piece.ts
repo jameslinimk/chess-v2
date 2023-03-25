@@ -1,5 +1,4 @@
-import { ValueSet } from "../util/valueSet"
-import type { Board, MoveData } from "./board"
+import type { Board, MoveData } from "$lib/chess/board"
 import {
 	Capture,
 	EnPassant,
@@ -9,8 +8,9 @@ import {
 	direction_expander,
 	direction_expander_ea,
 	type PieceAttribute,
-} from "./pieceAttributes"
-import { ct, loc, type Loc } from "./util"
+} from "$lib/chess/pieceAttributes"
+import { ct, loc, type Loc } from "$lib/chess/util"
+import { ValueSet } from "$lib/util/valueSet"
 
 /**
  * The color of a piece, such as `White` or `Black`
@@ -65,14 +65,14 @@ export class Piece {
 	/**
 	 * Path to the image of the piece (svg)
 	 */
-	get image(): string {
-		return `/pieces/standard/${pieceSymbols[this.name]}${ct(this.color, "w", "b")}.svg`
+	get image() {
+		return `/pieces/standard/${this.symbol}${ct(this.color, "w", "b")}.svg`
 	}
 
 	/**
 	 * The value of the piece
 	 */
-	get value(): number {
+	get value() {
 		return {
 			[Name.Pawn]: 1,
 			[Name.Knight]: 3,
@@ -83,10 +83,14 @@ export class Piece {
 		}[this.name]
 	}
 
+	get symbol() {
+		return pieceSymbols[this.name]
+	}
+
 	/**
 	 * Gets a human readable name of the piece
 	 */
-	get displayName(): string {
+	get displayName() {
 		return {
 			[Name.Pawn]: "Pawn",
 			[Name.Knight]: "Knight",
